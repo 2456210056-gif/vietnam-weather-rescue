@@ -1,0 +1,102 @@
+import type { Types } from "mongoose";
+import type { SOSNeed, SOSSignalDTO, SOSStatus } from "@/types/sos";
+
+type ObjectIdLike = Types.ObjectId | string;
+
+type UserLike =
+  | ObjectIdLike
+  | {
+      _id?: ObjectIdLike;
+      fullName?: string | null;
+      name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+    };
+
+type SOSSignalLike = {
+  _id: ObjectIdLike;
+  user: UserLike;
+  fullName?: string | null;
+  phone?: string | null;
+  needs: SOSNeed[];
+  note?: string | null;
+  description?: string | null;
+  addressText?: string | null;
+  status: SOSStatus;
+  assignedRescuer?: ObjectIdLike | null;
+  location: {
+    coordinates: [number, number];
+  };
+  accuracy?: number | null;
+  lastStatusAt: Date | string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+};
+
+function toISODate(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
+
+function toId(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value && typeof value === "object" && "_id" in value && value._id !== value) {
+    return toId(value._id);
+  }
+
+  return String(value);
+}
+
+function getReporterName(signal: SOSSignalLike): string | null {
+  if (signal.fullName) {
+    return signal.fullName;
+  }
+
+  const user = signal.user;
+
+  if (!user || typeof user !== "object" || !("name" in user)) {
+    return null;
+  }
+
+  return user.fullName ?? user.name ?? user.email ?? null;
+}
+
+function getReporterPhone(signal: SOSSignalLike): string | null {
+  if (signal.phone) {
+    return signal.phone;
+  }
+
+  const user = signal.user;
+
+  if (!user || typeof user !== "object" || !("phone" in user)) {
+    return null;
+  }
+
+  return user.phone ?? null;
+}
+
+export function serializeSOSSignal(signal: SOSSignalLike): SOSSignalDTO {
+  const [longitude, latitude] = signal.location.coordinates;
+
+  return {
+    id: toId(signal._id),
+    userId: toId(signal.user),
+    reporterName: getReporterName(signal),
+    reporterPhone: getReporterPhone(signal),
+    needs: signal.needs,
+    note: signal.note ?? signal.description ?? null,
+    addressText: signal.addressText ?? null,
+    status: signal.status,
+    coordinates: {
+      latitude,
+      longitude,
+      accuracy: signal.accuracy ?? null
+    },
+    assignedRescuerId: signal.assignedRescuer ? toId(signal.assignedRescuer) : null,
+    createdAt: toISODate(signal.createdAt),
+    updatedAt: toISODate(signal.updatedAt),
+    lastStatusAt: toISODate(signal.lastStatusAt)
+  };
+}
