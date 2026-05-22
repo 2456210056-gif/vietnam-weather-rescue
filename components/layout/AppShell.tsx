@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Navigation } from "@/components/layout/Navigation";
 import { RouteTransition } from "@/components/layout/RouteTransition";
+import { FloatingActionRail } from "@/components/ui/FloatingActionRail";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function AppShell({ children }: AppShellProps) {
         <RouteTransition>{children}</RouteTransition>
         <Footer />
       </div>
+      <FloatingActionRail />
     </div>
   );
 }

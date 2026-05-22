@@ -34,9 +34,58 @@ export type WeatherData = {
   fetchedAt: string;
   isRealtime: boolean;
   fallbackReason?: string;
+  forecastHourly?: WeatherForecastAlertPoint[];
+  providerAlerts?: WeatherProviderAlert[];
 };
 
 export type WeatherLocationMode = "gps" | "representative";
+
+export type WeatherAlertType =
+  | "rain"
+  | "heavy_rain"
+  | "storm"
+  | "thunderstorm"
+  | "wind"
+  | "flood"
+  | "stable";
+
+export type WeatherAlertSeverity = "info" | "watch" | "warning" | "danger";
+
+export type WeatherAlert = {
+  id: string;
+  type: WeatherAlertType;
+  severity: WeatherAlertSeverity;
+  title: string;
+  message: string;
+  probability?: number;
+  expectedTime?: string;
+  source: "forecast" | "provider_alert" | "fallback";
+};
+
+export type WeatherForecastAlertPoint = {
+  time: string;
+  temperature?: number;
+  precipitationProbability?: number;
+  rainVolume?: number;
+  windSpeed?: number;
+  pressure?: number;
+  main?: string;
+  description?: string;
+  condition?: string;
+};
+
+export type WeatherProviderAlert = {
+  id?: string;
+  event?: string;
+  title?: string;
+  headline?: string;
+  description?: string;
+  message?: string;
+  severity?: string;
+  start?: string;
+  startsAt?: string;
+  effective?: string;
+};
 
 export type HourlyForecastPoint = {
   time: string;

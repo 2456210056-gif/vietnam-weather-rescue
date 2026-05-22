@@ -3,7 +3,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Crosshair,
+  ExternalLink,
   Loader2,
+  Navigation,
   RadioTower,
   ShieldCheck,
   Waves
@@ -14,7 +16,15 @@ import useSWR from "swr";
 import { MapFreshnessBadge } from "@/components/map/MapFreshnessBadge";
 import { MapLayerControl } from "@/components/map/MapLayerControl";
 import { useGeolocation, type GeolocationSnapshot } from "@/hooks/useGeolocation";
+import { useRescueNavigation } from "@/hooks/useRescueNavigation";
 import { useSOSRealtime } from "@/hooks/useSOSRealtime";
+import {
+  buildGoogleMapsDirectionsUrl,
+  fetchRescueRoute,
+  formatRouteDistance,
+  formatRouteDuration,
+  type RescueRouteResult
+} from "@/lib/map/directions";
 import {
   BASE_MAP_LAYERS,
   getBaseMapLayer,
@@ -74,6 +84,12 @@ const RESCUER_STATUS_ACTIONS: { status: SOSStatus; label: string }[] = [
   { status: "APPROACHING", label: "Đang tiếp cận" },
   { status: "RESOLVED", label: "Đã xử lý" }
 ];
+
+type RescueRouteState = {
+  signalId: string;
+  distanceMeters: number;
+  durationSeconds: number;
+};
 
 function readStoredBaseLayer() {
   if (typeof window === "undefined") {
@@ -150,6 +166,15 @@ function createUserLocationIcon(leaflet: LeafletModule) {
   });
 }
 
+function createRescuerLocationIcon(leaflet: LeafletModule) {
+  return leaflet.divIcon({
+    className: "leaflet-user-location-icon",
+    html: '<div class="rescuer-location-marker"></div>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+}
+
 function createBaseTileLayer(leaflet: LeafletModule, layer: MapLayerConfig) {
   return leaflet.tileLayer(layer.url, {
     attribution: layer.attribution,
@@ -179,6 +204,7 @@ export function VietnamRescueMap() {
   const canManageSOS = session?.user?.role === "rescuer" || session?.user?.role === "admin";
   const realtime = useSOSRealtime(isAuthenticated);
   const geolocation = useGeolocation();
+  const rescueNavigation = useRescueNavigation();
   const signals = useSOSStore((state) => state.signals);
   const setSignals = useSOSStore((state) => state.setSignals);
   const upsertSignal = useSOSStore((state) => state.upsertSignal);
@@ -189,6 +215,7 @@ export function VietnamRescueMap() {
   const sosLayerRef = useRef<LayerGroup | null>(null);
   const sovereigntyLayerRef = useRef<LayerGroup | null>(null);
   const userLayerRef = useRef<LayerGroup | null>(null);
+  const rescueRouteLayerRef = useRef<LayerGroup | null>(null);
   const weatherLayersRef = useRef<TileLayer[]>([]);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapError, setMapError] = useState("");
@@ -205,6 +232,9 @@ export function VietnamRescueMap() {
   const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
   const [selectedSeaArea, setSelectedSeaArea] = useState<SeaArea | null>(null);
   const [isUpdatingSignal, setIsUpdatingSignal] = useState(false);
+  const [routeInfo, setRouteInfo] = useState<RescueRouteState | null>(null);
+  const [routeError, setRouteError] = useState("");
+  const [isDrawingRoute, setIsDrawingRoute] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const openWeatherTileKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY?.trim() ?? "";
   const hasWeatherApiKey = Boolean(openWeatherTileKey);
@@ -272,6 +302,7 @@ export function VietnamRescueMap() {
         sosLayerRef.current = leaflet.layerGroup().addTo(map);
         sovereigntyLayerRef.current = leaflet.layerGroup().addTo(map);
         userLayerRef.current = leaflet.layerGroup().addTo(map);
+        rescueRouteLayerRef.current = leaflet.layerGroup().addTo(map);
         mapRef.current = map;
         setIsMapReady(true);
       } catch {
@@ -290,6 +321,7 @@ export function VietnamRescueMap() {
       sosLayerRef.current = null;
       sovereigntyLayerRef.current = null;
       userLayerRef.current = null;
+      rescueRouteLayerRef.current = null;
       weatherLayersRef.current = [];
       setIsMapReady(false);
     };
@@ -558,6 +590,123 @@ export function VietnamRescueMap() {
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  function openGoogleMapsDirections(signal: SOSSignalDTO) {
+    const origin = rescueNavigation.position;
+    const url = buildGoogleMapsDirectionsUrl({
+      destinationLat: signal.coordinates.latitude,
+      destinationLng: signal.coordinates.longitude,
+      originLat: origin?.lat,
+      originLng: origin?.lng
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function clearRescueRoute() {
+    rescueRouteLayerRef.current?.clearLayers();
+    setRouteInfo(null);
+    setRouteError("");
+  }
+
+  function renderRescueRoute({
+    signal,
+    route,
+    origin
+  }: {
+    signal: SOSSignalDTO;
+    route: RescueRouteResult;
+    origin: { lat: number; lng: number };
+  }) {
+    const leaflet = leafletRef.current;
+    const map = mapRef.current;
+    const routeLayer = rescueRouteLayerRef.current;
+
+    if (!leaflet || !map || !routeLayer) {
+      return;
+    }
+
+    routeLayer.clearLayers();
+
+    const latLngs = route.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+    const polyline = leaflet.polyline(latLngs, {
+      color: "#2563eb",
+      weight: 6,
+      opacity: 0.86,
+      lineCap: "round",
+      lineJoin: "round"
+    });
+    polyline.addTo(routeLayer);
+
+    leaflet
+      .marker([origin.lat, origin.lng], {
+        icon: createRescuerLocationIcon(leaflet),
+        zIndexOffset: 850
+      })
+      .bindPopup("Vị trí của bạn")
+      .addTo(routeLayer);
+
+    const bounds = leaflet.latLngBounds([
+      [origin.lat, origin.lng],
+      [signal.coordinates.latitude, signal.coordinates.longitude],
+      ...latLngs
+    ]);
+    map.fitBounds(bounds, {
+      padding: [42, 42],
+      maxZoom: 15
+    });
+  }
+
+  async function startRescueDirections(signal: SOSSignalDTO) {
+    if (!canManageSOS) {
+      return;
+    }
+
+    setRouteError("");
+    setStatusMessage("");
+    setIsDrawingRoute(true);
+
+    try {
+      const origin = await rescueNavigation.requestPosition();
+
+      if (!origin) {
+        setRouteError(
+          rescueNavigation.message ||
+            "Bạn cần cấp quyền vị trí để chỉ đường trong bản đồ. Bạn vẫn có thể mở Google Maps."
+        );
+        return;
+      }
+
+      setUserPosition({
+        latitude: origin.lat,
+        longitude: origin.lng,
+        accuracy: origin.accuracy ?? 0
+      });
+
+      const route = await fetchRescueRoute({
+        origin,
+        destination: {
+          lat: signal.coordinates.latitude,
+          lng: signal.coordinates.longitude
+        }
+      });
+
+      renderRescueRoute({ signal, route, origin });
+      setRouteInfo({
+        signalId: signal.id,
+        distanceMeters: route.distanceMeters,
+        durationSeconds: route.durationSeconds
+      });
+      setStatusMessage("Đã vẽ tuyến đường tới vị trí SOS.");
+    } catch (error) {
+      setRouteError(
+        error instanceof Error
+          ? error.message
+          : "Không thể vẽ tuyến đường trong app. Bạn có thể mở Google Maps."
+      );
+    } finally {
+      setIsDrawingRoute(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -718,8 +867,75 @@ export function VietnamRescueMap() {
                   {statusMessage}
                 </p>
               ) : null}
+              {canManageSOS ? (
+                <div className="mt-3 grid gap-2">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <button
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-3 text-sm font-black text-white disabled:bg-slate-400"
+                      disabled={isDrawingRoute || rescueNavigation.isLocating}
+                      onClick={() => void startRescueDirections(selectedSignal)}
+                      type="button"
+                    >
+                      {isDrawingRoute || rescueNavigation.isLocating ? (
+                        <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Navigation aria-hidden className="h-4 w-4" />
+                      )}
+                      {isDrawingRoute || rescueNavigation.isLocating
+                        ? "Đang lấy vị trí..."
+                        : "Chỉ đường"}
+                    </button>
+                    <button
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
+                      onClick={() => openGoogleMapsDirections(selectedSignal)}
+                      type="button"
+                    >
+                      <ExternalLink aria-hidden className="h-4 w-4" />
+                      Mở Google Maps
+                    </button>
+                  </div>
+
+                  {routeInfo?.signalId === selectedSignal.id ? (
+                    <div className="rounded-2xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800">
+                      Tuyến đường: {formatRouteDistance(routeInfo.distanceMeters)} ·{" "}
+                      {formatRouteDuration(routeInfo.durationSeconds)}
+                    </div>
+                  ) : null}
+
+                  {routeError || rescueNavigation.message ? (
+                    <p className="rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold leading-5 text-amber-800">
+                      {routeError || rescueNavigation.message}
+                    </p>
+                  ) : null}
+
+                  {routeInfo ? (
+                    <button
+                      className="rounded-2xl bg-slate-100 px-4 py-2 text-xs font-black text-slate-700"
+                      onClick={clearRescueRoute}
+                      type="button"
+                    >
+                      Ẩn tuyến đường
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
               {canManageSOS && !["RESOLVED", "CANCELLED"].includes(selectedSignal.status) ? (
                 <div className="mt-3 grid gap-2">
+                  {selectedSignal.status !== "REACHED" ? (
+                    <button
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-black text-white disabled:bg-slate-400"
+                      disabled={isUpdatingSignal}
+                      onClick={() => void updateSignalStatus(selectedSignal, "REACHED")}
+                      type="button"
+                    >
+                      {isUpdatingSignal ? (
+                        <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck aria-hidden className="h-4 w-4" />
+                      )}
+                      Đã tiếp cận
+                    </button>
+                  ) : null}
                   {RESCUER_STATUS_ACTIONS.map((action) => (
                     <button
                       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white disabled:bg-slate-400"

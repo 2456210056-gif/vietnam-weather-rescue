@@ -1,9 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { motion } from "framer-motion";
+import { KeyRound, Mail, Phone, ShieldPlus, UserRound } from "lucide-react";
+import { useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from "react";
+import { WeatherCinematicBackground } from "@/components/weather/WeatherCinematicBackground";
 
 type RegisterResponse = {
   success?: boolean;
@@ -59,102 +62,99 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="rounded-3xl border border-white/70 bg-white/85 p-5 shadow-soft backdrop-blur-xl">
-        <div className="mb-5">
-          <h2 className="text-2xl font-black text-slate-950">Tạo tài khoản</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">
-            Tài khoản email/password được lưu an toàn bằng mật khẩu đã hash.
+    <section className="relative mx-auto -mt-2 flex min-h-[calc(100svh-7rem)] w-full max-w-6xl items-center justify-center overflow-hidden rounded-[40px] px-4 py-10 shadow-2xl shadow-blue-950/20">
+      <WeatherCinematicBackground condition="clouds" variant="auth" />
+      <div className="absolute inset-0 z-[1] bg-slate-950/25" />
+
+      <motion.div
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="relative z-10 w-full max-w-lg rounded-[34px] border border-white/20 bg-slate-950/30 p-5 text-white shadow-2xl shadow-blue-950/30 backdrop-blur-xl sm:p-6"
+        initial={{ opacity: 0, y: 22, scale: 0.98 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
+        <div className="mb-6">
+          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-white/15 text-emerald-100">
+            <ShieldPlus aria-hidden className="h-6 w-6" />
+          </div>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-100/80">
+            Vietnam Rescue
+          </p>
+          <h2 className="mt-2 text-3xl font-black">Tạo tài khoản</h2>
+          <p className="mt-2 text-sm leading-6 text-white/70">
+            Mật khẩu được hash trước khi lưu. Mã quyền đặc biệt chỉ dùng khi bạn được cấp quyền cứu hộ/quản trị.
           </p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-800">Họ và tên</span>
-            <input
-              autoComplete="name"
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-              onChange={(event) => setFullName(event.target.value)}
-              placeholder="Nguyễn Văn A"
-              required
-              type="text"
-              value={fullName}
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-800">Email</span>
-            <input
-              autoComplete="email"
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="email@example.com"
-              required
-              type="email"
-              value={email}
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-800">Số điện thoại</span>
-            <input
-              autoComplete="tel"
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="090..."
-              type="tel"
-              value={phone}
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-800">Mật khẩu</span>
-            <input
-              autoComplete="new-password"
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-              minLength={6}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Tối thiểu 6 ký tự"
-              required
-              type="password"
-              value={password}
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-800">Nhập lại mật khẩu</span>
-            <input
-              autoComplete="new-password"
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-              minLength={6}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              placeholder="Nhập lại mật khẩu"
-              required
-              type="password"
-              value={confirmPassword}
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-800">Mã quyền đặc biệt</span>
-            <input
-              autoComplete="off"
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
-              onChange={(event) => setInviteCode(event.target.value)}
-              placeholder="Nhập mã admin/cứu hộ nếu có"
-              type="text"
-              value={inviteCode}
-            />
-          </label>
+        <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
+          <AuthInput
+            autoComplete="name"
+            icon={<UserRound aria-hidden className="h-4 w-4 text-white/60" />}
+            label="Họ và tên"
+            onChange={setFullName}
+            placeholder="Nguyễn Văn A"
+            required
+            type="text"
+            value={fullName}
+          />
+          <AuthInput
+            autoComplete="email"
+            icon={<Mail aria-hidden className="h-4 w-4 text-white/60" />}
+            label="Email"
+            onChange={setEmail}
+            placeholder="email@example.com"
+            required
+            type="email"
+            value={email}
+          />
+          <AuthInput
+            autoComplete="tel"
+            icon={<Phone aria-hidden className="h-4 w-4 text-white/60" />}
+            label="Số điện thoại"
+            onChange={setPhone}
+            placeholder="090..."
+            type="tel"
+            value={phone}
+          />
+          <AuthInput
+            autoComplete="off"
+            icon={<KeyRound aria-hidden className="h-4 w-4 text-white/60" />}
+            label="Mã quyền đặc biệt"
+            onChange={setInviteCode}
+            placeholder="Admin/cứu hộ nếu có"
+            type="text"
+            value={inviteCode}
+          />
+          <AuthInput
+            autoComplete="new-password"
+            icon={<KeyRound aria-hidden className="h-4 w-4 text-white/60" />}
+            label="Mật khẩu"
+            minLength={6}
+            onChange={setPassword}
+            placeholder="Tối thiểu 6 ký tự"
+            required
+            type="password"
+            value={password}
+          />
+          <AuthInput
+            autoComplete="new-password"
+            icon={<KeyRound aria-hidden className="h-4 w-4 text-white/60" />}
+            label="Nhập lại mật khẩu"
+            minLength={6}
+            onChange={setConfirmPassword}
+            placeholder="Nhập lại mật khẩu"
+            required
+            type="password"
+            value={confirmPassword}
+          />
 
           {message ? (
-            <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            <p className="rounded-2xl border border-red-200/20 bg-red-500/15 px-4 py-3 text-sm font-bold text-red-50 sm:col-span-2">
               {message}
             </p>
           ) : null}
 
           <button
-            className="gpu-transition w-full rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-3 text-base font-black text-white shadow-lg shadow-blue-200 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none"
+            className="gpu-transition rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-3 text-base font-black text-white shadow-lg shadow-blue-950/25 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
             disabled={loading}
             type="submit"
           >
@@ -162,13 +162,41 @@ export function RegisterForm() {
           </button>
         </form>
 
-        <p className="mt-5 text-center text-sm text-slate-600">
+        <p className="mt-5 text-center text-sm text-white/70">
           Đã có tài khoản?{" "}
-          <Link className="font-black text-blue-700" href={"/login" as Route}>
+          <Link className="font-black text-emerald-100" href={"/login" as Route}>
             Đăng nhập
           </Link>
         </p>
+      </motion.div>
+    </section>
+  );
+}
+
+function AuthInput({
+  label,
+  icon,
+  value,
+  onChange,
+  ...inputProps
+}: {
+  label: string;
+  icon: ReactNode;
+  value: string;
+  onChange: (value: string) => void;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
+  return (
+    <label className="block">
+      <span className="text-sm font-bold text-white/80">{label}</span>
+      <div className="mt-2 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 focus-within:border-emerald-200/70 focus-within:ring-4 focus-within:ring-emerald-300/15">
+        {icon}
+        <input
+          className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/40"
+          onChange={(event) => onChange(event.target.value)}
+          value={value}
+          {...inputProps}
+        />
       </div>
-    </div>
+    </label>
   );
 }

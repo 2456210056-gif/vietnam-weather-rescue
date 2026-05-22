@@ -1,4 +1,4 @@
-import type { WeatherData } from "@/types/weather";
+import type { WeatherData, WeatherForecastAlertPoint } from "@/types/weather";
 
 type CurrentWeatherParams = {
   latitude: number;
@@ -31,6 +31,28 @@ type OpenWeatherCurrentResponse = {
 };
 
 const OPENWEATHER_CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather";
+const OPENWEATHER_FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
+
+type OpenWeatherForecastResponse = {
+  list?: Array<{
+    dt?: number;
+    main?: {
+      temp?: number;
+      pressure?: number;
+    };
+    weather?: Array<{
+      main?: string;
+      description?: string;
+    }>;
+    wind?: {
+      speed?: number;
+    };
+    pop?: number;
+    rain?: {
+      "3h"?: number;
+    };
+  }>;
+};
 
 function toNumber(value: unknown, fallback = 0) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -61,6 +83,43 @@ function buildFallbackWeather(params: CurrentWeatherParams, reason: string): Wea
     isRealtime: false,
     fallbackReason: reason
   };
+}
+
+async function getHourlyForecast(params: CurrentWeatherParams, apiKey: string): Promise<WeatherForecastAlertPoint[]> {
+  const searchParams = new URLSearchParams({
+    lat: String(params.latitude),
+    lon: String(params.longitude),
+    appid: apiKey,
+    units: "metric",
+    lang: "vi",
+    cnt: "8",
+    _: String(Date.now())
+  });
+
+  const response = await fetch(`${OPENWEATHER_FORECAST_URL}?${searchParams}`, {
+    cache: "no-store",
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const data = (await response.json()) as OpenWeatherForecastResponse;
+
+  return (data.list ?? []).map((item) => ({
+    time: item.dt ? new Date(item.dt * 1000).toISOString() : new Date().toISOString(),
+    temperature: item.main?.temp,
+    precipitationProbability: typeof item.pop === "number" ? Math.round(item.pop * 100) : undefined,
+    rainVolume: item.rain?.["3h"],
+    windSpeed: item.wind?.speed !== undefined ? msToKmh(item.wind.speed) : undefined,
+    pressure: item.main?.pressure,
+    main: item.weather?.[0]?.main,
+    description: item.weather?.[0]?.description,
+    condition: item.weather?.[0]?.main
+  }));
 }
 
 export async function getCurrentWeather(params: CurrentWeatherParams): Promise<WeatherData> {
@@ -97,6 +156,7 @@ export async function getCurrentWeather(params: CurrentWeatherParams): Promise<W
 
     const data = (await response.json()) as OpenWeatherCurrentResponse;
     const observedAt = data.dt ? new Date(data.dt * 1000).toISOString() : fetchedAt;
+    const forecastHourly = await getHourlyForecast(params, apiKey).catch(() => []);
 
     return {
       locationName: params.locationName ?? data.name ?? "Vị trí hiện tại",
@@ -114,7 +174,8 @@ export async function getCurrentWeather(params: CurrentWeatherParams): Promise<W
       source: "openweather",
       observedAt,
       fetchedAt,
-      isRealtime: true
+      isRealtime: true,
+      forecastHourly
     };
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Không thể gọi OpenWeather.";

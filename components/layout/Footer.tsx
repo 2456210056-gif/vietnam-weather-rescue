@@ -4,8 +4,8 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="mx-auto w-full max-w-6xl px-4 pb-28 pt-8 text-center md:pb-8">
-      <div className="theme-glass rounded-[28px] px-4 py-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+      <div className="rounded-[28px] border border-white/60 bg-white/70 px-4 py-5 shadow-xl shadow-blue-950/10 backdrop-blur-xl">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">
           Vietnam Weather GIS SOS
         </p>
         <p className="mt-2 text-sm font-black text-slate-950 sm:text-base">

@@ -64,7 +64,7 @@ export function WeatherMetricsGrid({
   return (
     <motion.section
       animate="show"
-      className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+      className="grid grid-cols-2 gap-4 2xl:grid-cols-3"
       initial="hidden"
       variants={{
         hidden: {},
@@ -111,7 +111,7 @@ export function WeatherMetricsGrid({
         helper={sourceLabel}
         icon={<CloudSun aria-hidden className="h-5 w-5" />}
         label="Nguồn"
-        tone="red"
+        tone="green"
         value={sourceLabel ?? "--"}
       />
       <WeatherMetricCard

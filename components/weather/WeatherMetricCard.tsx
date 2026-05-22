@@ -30,26 +30,37 @@ export function WeatherMetricCard({
 }: WeatherMetricCardProps) {
   const clampedProgress =
     progress === undefined ? undefined : Math.max(0, Math.min(100, progress));
+  const valueIsLong = value.length > 10;
 
   return (
     <motion.article
-      className="flex min-h-[140px] flex-col rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-soft shadow-blue-950/5 backdrop-blur-xl transition-transform duration-200 hover:scale-[1.015]"
+      className="flex min-h-[120px] min-w-0 flex-col rounded-3xl border border-white/10 bg-white/15 p-4 text-white shadow-lg shadow-blue-950/10 backdrop-blur-xl transition-transform duration-200 hover:scale-[1.015]"
       variants={{
         hidden: { opacity: 0, y: 12 },
         show: { opacity: 1, y: 0 }
       }}
     >
-      <div className={`grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br text-white ${gradientClasses[tone]}`}>
+      <div className={`mb-3 grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br text-white ${gradientClasses[tone]}`}>
         {icon}
       </div>
-      <p className="mt-4 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+      <p className="truncate text-xs font-bold uppercase tracking-[0.18em] text-white/70">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-black text-slate-950">{value}</p>
-      {helper ? <p className="mt-1 text-sm font-semibold text-slate-500">{helper}</p> : null}
+      <p
+        className={`mt-2 break-words font-black leading-tight text-white ${
+          valueIsLong ? "text-xl" : "text-2xl"
+        }`}
+      >
+        {value}
+      </p>
+      {helper ? (
+        <p className="mt-1 break-words text-sm font-semibold leading-5 text-white/60">
+          {helper}
+        </p>
+      ) : null}
       {clampedProgress !== undefined ? (
         <div className="mt-auto pt-4">
-          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-2 overflow-hidden rounded-full bg-white/15">
             <div
               className={`h-full rounded-full bg-gradient-to-r ${gradientClasses[tone]}`}
               style={{ transform: `scaleX(${clampedProgress / 100})`, transformOrigin: "left" }}
