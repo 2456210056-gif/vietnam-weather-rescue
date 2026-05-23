@@ -64,14 +64,17 @@ export function Navigation() {
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-72 border-r border-white/60 bg-white/80 p-4 shadow-2xl shadow-blue-950/10 backdrop-blur-xl md:flex md:flex-col">
-        <Link className="flex items-center gap-3 rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-emerald-500 p-4 text-white shadow-lg shadow-blue-200" href="/">
+      <aside className="fixed inset-y-0 left-0 z-50 hidden w-72 border-r border-white/70 bg-white/85 p-4 shadow-2xl shadow-blue-950/10 backdrop-blur-xl md:flex md:flex-col">
+        <Link
+          className="flex items-center gap-3 rounded-[28px] bg-gradient-to-br from-blue-700 via-blue-600 to-emerald-500 p-4 text-white shadow-lg shadow-blue-200"
+          href="/"
+        >
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
             <ShieldAlert aria-hidden className="h-7 w-7" />
           </span>
           <span>
             <span className="block text-sm font-black leading-tight">Vietnam Rescue</span>
-            <span className="mt-1 block text-xs font-semibold text-slate-300">
+            <span className="mt-1 block text-xs font-semibold text-white/75">
               Weather GIS SOS
             </span>
           </span>
@@ -101,7 +104,7 @@ export function Navigation() {
         </nav>
 
         <Link
-          className="gpu-transition mt-auto flex items-center justify-center gap-3 rounded-3xl bg-red-600 px-4 py-4 text-sm font-black text-white shadow-xl shadow-red-200 transition active:scale-[0.98]"
+          className="gpu-transition mt-auto flex items-center justify-center gap-3 rounded-[28px] bg-red-600 px-4 py-4 text-sm font-black text-white shadow-xl shadow-red-200 transition hover:bg-red-500 active:scale-[0.98]"
           href="/sos"
         >
           <LifeBuoy aria-hidden className="h-5 w-5" />
@@ -109,7 +112,7 @@ export function Navigation() {
         </Link>
       </aside>
 
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-50 border-t border-white/60 bg-white/90 px-2 pt-2 shadow-[0_-12px_30px_rgba(37,99,235,0.12)] backdrop-blur-xl md:hidden">
+      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-50 border-t border-white/70 bg-white/90 px-2 pt-2 shadow-[0_-12px_30px_rgba(37,99,235,0.12)] backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
           {[
             NAV_ITEMS[0],

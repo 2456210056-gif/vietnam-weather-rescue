@@ -12,7 +12,7 @@ import {
   X
 } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import useSWR from "swr";
 import { useGeolocation, type GeolocationSnapshot } from "@/hooks/useGeolocation";
 import { useSOSRealtime } from "@/hooks/useSOSRealtime";
@@ -43,7 +43,7 @@ const EMERGENCY_NUMBERS = [
   { number: "113", label: "Công an" },
   { number: "114", label: "PCCC / cứu nạn cứu hộ" },
   { number: "115", label: "Cấp cứu y tế" }
-];
+] as const;
 
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -173,32 +173,37 @@ export function SOSPanel() {
   }
 
   return (
-    <div className="space-y-5">
-      <section className="overflow-hidden rounded-2xl border border-red-100 bg-white shadow-soft">
-        <div className="bg-red-600 px-5 py-4 text-white">
-          <div className="flex items-center justify-between gap-3">
+    <div className="space-y-5 pb-28 md:pb-10">
+      <section className="overflow-hidden rounded-[32px] border border-red-200 bg-white shadow-2xl shadow-red-950/10">
+        <div className="bg-gradient-to-r from-red-600 to-red-500 p-6 text-white">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-100">
-                SOS khẩn cấp
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-red-100">
+                SOS KHẨN CẤP
               </p>
-              <h2 className="mt-1 text-2xl font-black">Phát tín hiệu cứu hộ</h2>
+              <h2 className="mt-1 text-2xl font-black md:text-3xl">
+                Phát tín hiệu cứu hộ
+              </h2>
             </div>
-            <ShieldAlert aria-hidden className="h-9 w-9 shrink-0" />
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-3xl bg-white/15">
+              <ShieldAlert aria-hidden className="h-8 w-8" />
+            </div>
           </div>
         </div>
 
-        <div className="space-y-5 p-5">
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-            Đây là hệ thống hỗ trợ báo sự cố trong phạm vi ứng dụng/đồ án. Khi nguy hiểm
-            thật, hãy gọi ngay số khẩn cấp phù hợp.
+        <div className="space-y-6 p-5 md:p-6">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">
+            Đây là hệ thống hỗ trợ báo sự cố trong phạm vi ứng dụng/đồ án. Khi nguy hiểm thật,
+            hãy gọi ngay số khẩn cấp phù hợp.
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {EMERGENCY_NUMBERS.map((item) => (
               <a
-                className="flex items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 py-3 text-sm font-black text-red-700"
+                className="flex h-14 items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 text-sm font-black text-red-700 transition hover:bg-red-100"
                 href={`tel:${item.number}`}
                 key={item.number}
+                title={item.label}
               >
                 <PhoneCall aria-hidden className="h-4 w-4" />
                 {item.number}
@@ -206,25 +211,25 @@ export function SOSPanel() {
             ))}
           </div>
 
-          <div className="flex justify-center py-3">
+          <div className="flex justify-center py-3 md:py-5">
             <motion.button
-              animate={{ scale: [1, 1.05, 1], opacity: [1, 0.96, 1] }}
-              className="gpu-transition flex h-44 w-44 flex-col items-center justify-center rounded-full bg-red-600 text-white shadow-[0_0_0_12px_rgba(220,38,38,0.10),0_24px_60px_rgba(220,38,38,0.38)] outline-none ring-4 ring-red-100 transition active:scale-95"
+              animate={{ scale: [1, 1.04, 1], opacity: [1, 0.97, 1] }}
+              className="gpu-transition flex h-36 w-36 flex-col items-center justify-center rounded-full bg-red-600 text-white shadow-[0_0_60px_rgba(220,38,38,0.35)] outline-none ring-8 ring-red-100 transition active:scale-95 md:h-48 md:w-48"
               onClick={openModal}
               transition={{
-                duration: 1.15,
+                duration: 1.25,
                 ease: "easeInOut",
                 repeat: Infinity
               }}
               type="button"
             >
-              <AlertTriangle aria-hidden className="mb-2 h-10 w-10" />
-              <span className="text-4xl font-black tracking-wide">SOS</span>
-              <span className="mt-1 text-sm font-bold">Cứu hộ</span>
+              <AlertTriangle aria-hidden className="mb-2 h-9 w-9 md:h-11 md:w-11" />
+              <span className="text-4xl font-black tracking-wide md:text-5xl">SOS</span>
+              <span className="mt-1 text-sm font-bold md:text-base">Cứu hộ</span>
             </motion.button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3">
             <InfoBox
               icon={<MapPin aria-hidden className="h-4 w-4 text-red-600" />}
               label="Vị trí"
@@ -237,7 +242,7 @@ export function SOSPanel() {
                 realtime.isConnected
                   ? "Đã kết nối Pusher."
                   : realtime.isUnavailable
-                    ? "Chưa cấu hình Pusher, dùng polling 15 giây."
+                    ? "Dùng polling 15 giây khi thiếu Pusher."
                     : "Đang sẵn sàng."
               }
             />
@@ -254,16 +259,16 @@ export function SOSPanel() {
         </div>
       </section>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-black text-slate-950">Tín hiệu gần đây</h3>
-          <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700">
+      <section className="rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-xl shadow-blue-950/10 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-xl font-black text-slate-950">Tín hiệu gần đây</h3>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
             {signals.length}
           </span>
         </div>
 
-        <div className="grid gap-3">
-          {signals.slice(0, 6).map((signal) => (
+        <div className="mt-4 grid gap-3">
+          {signals.slice(0, 4).map((signal) => (
             <article
               className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
               key={signal.id}
@@ -295,8 +300,8 @@ export function SOSPanel() {
           ))}
 
           {signals.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm font-semibold text-slate-500">
-              Chưa có tín hiệu SOS đang hoạt động.
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-sm font-semibold text-slate-500">
+              Chưa có tín hiệu SOS gần đây.
             </div>
           ) : null}
         </div>
@@ -306,7 +311,7 @@ export function SOSPanel() {
         {isModalOpen ? (
           <motion.div
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/55 px-3 pb-3 backdrop-blur-sm sm:items-center sm:p-6"
+            className="fixed inset-0 z-[90] flex items-end justify-center bg-slate-950/55 px-3 pb-3 backdrop-blur-sm sm:items-center sm:p-6"
             exit={{ opacity: 0 }}
             initial={{ opacity: 0 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
@@ -456,17 +461,17 @@ function InfoBox({
   label,
   value
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
 }) {
   return (
-    <div className="rounded-xl bg-slate-50 p-4">
-      <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+      <div className="flex items-center gap-2 text-sm font-black text-slate-900">
         {icon}
         {label}
       </div>
-      <p className="mt-2 text-xs leading-5 text-slate-600">{value}</p>
+      <p className="mt-2 text-xs font-semibold leading-5 text-slate-600">{value}</p>
     </div>
   );
 }

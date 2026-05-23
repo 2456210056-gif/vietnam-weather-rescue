@@ -20,13 +20,13 @@ export default async function RescuerPage() {
 
 function AuthRequired() {
   return (
-    <section className="mx-auto max-w-xl rounded-3xl border border-white/60 bg-white/85 p-6 text-center shadow-soft backdrop-blur-xl">
+    <section className="mx-auto max-w-xl rounded-[32px] border border-white/70 bg-white/85 p-6 text-center shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
       <h2 className="text-2xl font-black text-slate-950">Vui lòng đăng nhập</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
-        Bạn cần đăng nhập bằng tài khoản cứu hộ hoặc quản trị để xem danh sách SOS.
+      <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+        Bạn cần tài khoản cứu hộ hoặc quản trị để xem danh sách SOS.
       </p>
       <Link
-        className="mt-4 inline-flex rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white"
+        className="mt-4 inline-flex h-12 items-center rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-sm font-black text-white"
         href={"/login" as Route}
       >
         Đăng nhập
@@ -37,15 +37,15 @@ function AuthRequired() {
 
 function AccessDenied() {
   return (
-    <section className="mx-auto max-w-xl rounded-3xl border border-red-100 bg-white/85 p-6 text-center shadow-soft backdrop-blur-xl">
+    <section className="mx-auto max-w-xl rounded-[32px] border border-red-100 bg-white/85 p-6 text-center shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
       <h2 className="text-2xl font-black text-slate-950">
         Bạn không có quyền truy cập khu vực này
       </h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
+      <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
         Trang này chỉ dành cho Cứu hộ viên hoặc Quản trị viên.
       </p>
       <Link
-        className="mt-4 inline-flex rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
+        className="mt-4 inline-flex h-12 items-center rounded-2xl bg-slate-950 px-4 text-sm font-black text-white"
         href="/dashboard"
       >
         Về Dashboard

@@ -58,7 +58,7 @@ export function MapFreshnessBadge({
       {collapsed ? (
         <motion.button
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="pointer-events-auto ml-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-white/95 px-4 py-3 text-xs font-black text-slate-950 shadow-lg shadow-blue-950/10 backdrop-blur-xl"
+          className="pointer-events-auto ml-auto inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white/95 px-4 text-xs font-black text-slate-950 shadow-lg shadow-blue-950/10 backdrop-blur-xl"
           exit={{ opacity: 0, y: -8, scale: 0.98 }}
           initial={{ opacity: 0, y: 8, scale: 0.98 }}
           key="freshness-open"
@@ -72,7 +72,7 @@ export function MapFreshnessBadge({
       ) : (
         <motion.div
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="pointer-events-auto max-h-[48svh] w-full max-w-[32rem] overflow-y-auto rounded-3xl border border-white/70 bg-white/90 p-3 text-xs font-semibold text-slate-600 shadow-xl shadow-blue-950/10 backdrop-blur-xl"
+          className="pointer-events-auto max-h-[42svh] w-full max-w-[26rem] overflow-y-auto rounded-[28px] border border-white/70 bg-white/95 p-3 text-xs font-semibold text-slate-600 shadow-xl shadow-blue-950/10 backdrop-blur-xl"
           exit={{ opacity: 0, y: -8, scale: 0.98 }}
           initial={{ opacity: 0, y: 8, scale: 0.98 }}
           key="freshness-panel"
@@ -81,11 +81,11 @@ export function MapFreshnessBadge({
           <div className="flex items-start justify-between gap-3">
             <p className="flex items-center gap-2 font-black text-slate-950">
               <Clock aria-hidden className="h-4 w-4 text-blue-600" />
-              Cập nhật lúc: {lastUpdated ? formatTime(lastUpdated) : "Đang cập nhật..."}
+              Cập nhật: {lastUpdated ? formatTime(lastUpdated) : "Đang cập nhật..."}
             </p>
             <button
               aria-label="Thu gọn thông tin lớp bản đồ"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-700 transition-transform duration-200 hover:scale-[1.03]"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-700"
               onClick={() => updateCollapsed(true)}
               type="button"
             >
@@ -115,7 +115,7 @@ export function MapFreshnessBadge({
 
           <div className="mt-3 grid gap-2">
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 py-2 text-xs font-black text-white shadow-sm disabled:bg-slate-400"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 text-xs font-black text-white shadow-sm disabled:bg-slate-400"
               disabled={!hasWeatherApiKey || isRefreshing}
               onClick={onRefresh}
               type="button"
@@ -124,7 +124,7 @@ export function MapFreshnessBadge({
               Làm mới lớp thời tiết
             </button>
             <label className="flex items-center justify-between gap-3 rounded-2xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-700">
-              <span>Tự động cập nhật 5 phút</span>
+              <span>Tự động 5 phút</span>
               <input
                 checked={autoRefreshEnabled}
                 className="h-4 w-4 accent-emerald-500"

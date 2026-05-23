@@ -18,6 +18,13 @@ type MapLayerControlProps = {
   onOpenStreetView: () => void;
 };
 
+const PRIMARY_WEATHER_LAYER_IDS = new Set([
+  "precipitation_new",
+  "clouds_new",
+  "wind_new",
+  "temp_new"
+]);
+
 export function MapLayerControl({
   baseLayers,
   overlayLayers,
@@ -31,11 +38,15 @@ export function MapLayerControl({
   onOpenStreetView
 }: MapLayerControlProps) {
   const [open, setOpen] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const visibleOverlays = showMore
+    ? overlayLayers
+    : overlayLayers.filter((layer) => PRIMARY_WEATHER_LAYER_IDS.has(layer.id));
 
   return (
-    <div className="pointer-events-auto w-full max-w-[22rem]">
+    <div className="pointer-events-auto w-full max-w-[20rem]">
       <button
-        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/95 px-4 py-3 text-sm font-black text-slate-950 shadow-lg backdrop-blur-xl"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white/95 px-4 text-sm font-black text-slate-950 shadow-lg shadow-blue-950/10 backdrop-blur-xl"
         onClick={() => setOpen((value) => !value)}
         type="button"
       >
@@ -47,7 +58,7 @@ export function MapLayerControl({
         {open ? (
           <motion.section
             animate={{ opacity: 1, y: 0 }}
-            className="mt-2 max-h-[66svh] overflow-y-auto rounded-3xl border border-white/60 bg-white/95 p-3 shadow-2xl backdrop-blur-xl will-change-transform"
+            className="mt-2 max-h-[58svh] overflow-y-auto rounded-[28px] border border-white/70 bg-white/95 p-3 shadow-2xl shadow-blue-950/10 backdrop-blur-xl will-change-transform"
             exit={{ opacity: 0, y: -8 }}
             initial={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
@@ -57,7 +68,7 @@ export function MapLayerControl({
                 Bản đồ nền
               </p>
               <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                Base map là nền đường/phố/vệ tinh/địa hình, không phải dữ liệu thời gian thực.
+                Bản đồ nền không phải dữ liệu thời gian thực.
               </p>
               <div className="mt-2 grid gap-2">
                 {baseLayers.map((layer) => (
@@ -65,7 +76,7 @@ export function MapLayerControl({
                     className={`rounded-2xl px-3 py-2 text-left text-xs font-black ${
                       selectedBaseLayerId === layer.id
                         ? "bg-gradient-to-r from-blue-600 to-emerald-500 text-white"
-                        : "bg-blue-50 text-slate-700 hover:bg-blue-100"
+                        : "bg-slate-50 text-slate-700 hover:bg-blue-50"
                     }`}
                     key={layer.id}
                     onClick={() => onBaseLayerChange(layer.id)}
@@ -86,17 +97,13 @@ export function MapLayerControl({
               <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
                 Lớp thời tiết
               </p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                Weather overlay dùng OpenWeather và được gắn cache key khi tải/làm mới.
-              </p>
               {!hasWeatherApiKey ? (
                 <p className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold leading-5 text-amber-800">
-                  Chưa cấu hình API thời tiết để hiển thị lớp mưa/mây/gió. Bản đồ nền vẫn hoạt
-                  động bình thường.
+                  Chưa cấu hình API thời tiết. Bản đồ nền vẫn hoạt động.
                 </p>
               ) : null}
               <div className="mt-2 grid gap-2">
-                {overlayLayers.map((layer) => {
+                {visibleOverlays.map((layer) => {
                   const active = selectedOverlayIds.includes(layer.id);
 
                   return (
@@ -122,11 +129,20 @@ export function MapLayerControl({
                   );
                 })}
               </div>
+              {overlayLayers.length > visibleOverlays.length ? (
+                <button
+                  className="mt-2 w-full rounded-2xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-700"
+                  onClick={() => setShowMore((value) => !value)}
+                  type="button"
+                >
+                  {showMore ? "Thu gọn" : "Xem thêm"}
+                </button>
+              ) : null}
             </div>
 
             <div className="mt-4 grid gap-2">
               <button
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 py-3 text-xs font-black text-white disabled:bg-slate-400"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 text-xs font-black text-white disabled:bg-slate-400"
                 disabled={!hasWeatherApiKey || isRefreshing}
                 onClick={onRefreshWeatherLayers}
                 type="button"
@@ -135,7 +151,7 @@ export function MapLayerControl({
                 Làm mới lớp thời tiết
               </button>
               <button
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-950 px-3 py-3 text-xs font-black text-white"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-3 text-xs font-black text-white"
                 onClick={onOpenStreetView}
                 type="button"
               >

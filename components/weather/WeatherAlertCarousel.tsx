@@ -54,7 +54,7 @@ export function WeatherAlertCarousel({ alerts }: WeatherAlertCarouselProps) {
       <AnimatePresence mode="wait">
         <motion.article
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          className={`min-h-[190px] rounded-[28px] bg-gradient-to-br ${severityTone[activeAlert.severity]} p-4`}
+          className={`min-h-[170px] rounded-[28px] bg-gradient-to-br ${severityTone[activeAlert.severity]} p-4`}
           exit={{ opacity: 0, x: -16, scale: 0.98 }}
           initial={{ opacity: 0, x: 16, scale: 0.98 }}
           key={activeAlert.id}
@@ -81,7 +81,7 @@ export function WeatherAlertCarousel({ alerts }: WeatherAlertCarouselProps) {
                 {activeAlert.message}
               </p>
               {activeAlert.expectedTime ? (
-                <p className="mt-3 text-sm font-bold text-white/70">Dự kiến khoảng: {activeAlert.expectedTime}</p>
+                <p className="mt-3 text-sm font-bold text-white/70">Dự kiến: {activeAlert.expectedTime}</p>
               ) : null}
             </div>
 

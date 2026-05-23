@@ -65,7 +65,7 @@ export function WeatherDashboard() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <WeatherLocationSelector
         geolocationStatus={geolocation.status}
         isRefreshing={weatherQuery.isFetching}
@@ -86,20 +86,16 @@ export function WeatherDashboard() {
         </p>
       ) : null}
 
-      {weatherQuery.isLoading && !weatherQuery.data ? (
-        <WeatherSkeleton />
-      ) : null}
+      {weatherQuery.isLoading && !weatherQuery.data ? <WeatherSkeleton /> : null}
 
       {weatherQuery.error ? (
         <div className="rounded-3xl border border-red-100 bg-white/90 p-5 shadow-soft">
           <p className="flex items-center gap-2 font-black text-red-700">
             <AlertCircle aria-hidden className="h-5 w-5" />
-            Không thể tải dữ liệu thời tiết.
+            Không thể tải thời tiết.
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Kiểm tra route `/api/weather/current`, cấu hình `OPENWEATHER_API_KEY` hoặc
-            `NEXT_PUBLIC_OPENWEATHER_API_KEY`, rồi thử lại. Khi thiếu key, API nội bộ sẽ trả dữ
-            liệu demo có badge rõ ràng.
+            Kiểm tra API key hoặc thử lại với dữ liệu demo.
           </p>
           <button
             className="mt-4 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
@@ -128,7 +124,7 @@ function WeatherSkeleton() {
     <div className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-soft backdrop-blur-xl">
       <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
         <Loader2 aria-hidden className="h-5 w-5 animate-spin text-red-600" />
-        Đang tải thời tiết thời gian thực...
+        Đang tải thời tiết...
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (

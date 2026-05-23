@@ -10,10 +10,10 @@ type RescueResponse = {
   signals: SOSSignalDTO[];
 };
 
-const STATUS_ACTIONS: { status: SOSStatus; label: string }[] = [
-  { status: "ACKNOWLEDGED", label: "Đã tiếp nhận" },
-  { status: "APPROACHING", label: "Đang tiếp cận" },
-  { status: "RESOLVED", label: "Đã xử lý" }
+const STATUS_ACTIONS: { status: SOSStatus; label: string; className: string }[] = [
+  { status: "ACKNOWLEDGED", label: "Đã tiếp nhận", className: "bg-blue-600 hover:bg-blue-500" },
+  { status: "APPROACHING", label: "Đang tiếp cận", className: "bg-violet-600 hover:bg-violet-500" },
+  { status: "RESOLVED", label: "Đã xử lý", className: "bg-emerald-600 hover:bg-emerald-500" }
 ];
 
 async function fetcher<T>(url: string) {
@@ -25,6 +25,13 @@ async function fetcher<T>(url: string) {
   }
 
   return payload;
+}
+
+function statusTone(status: SOSStatus) {
+  if (status === "RESOLVED") return "bg-emerald-50 text-emerald-700";
+  if (status === "APPROACHING" || status === "REACHED") return "bg-violet-50 text-violet-700";
+  if (status === "ACKNOWLEDGED") return "bg-blue-50 text-blue-700";
+  return "bg-red-50 text-red-700";
 }
 
 export function RescuerDashboard() {
@@ -57,18 +64,17 @@ export function RescuerDashboard() {
   }
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-3xl bg-slate-950 p-5 text-white shadow-soft">
-        <p className="text-sm font-bold uppercase tracking-[0.18em] text-red-300">
+    <div className="space-y-6">
+      <section className="rounded-[32px] bg-slate-950 p-6 text-white shadow-2xl lg:p-8">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-300">
           Rescuer dashboard
         </p>
-        <h2 className="mt-2 text-3xl font-black">Điều phối tín hiệu SOS</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-          Danh sách tự làm mới mỗi 15 giây. Khi Pusher khả dụng, bản đồ sẽ nhận marker gần như
-          tức thời.
+        <h2 className="mt-2 text-3xl font-black lg:text-4xl">Điều phối tín hiệu SOS</h2>
+        <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-300">
+          Danh sách làm mới mỗi 15 giây. Vào bản đồ để xem marker, chỉ đường và cập nhật trạng thái.
         </p>
         <Link
-          className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white"
+          className="mt-4 inline-flex h-12 items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-sm font-black text-white"
           href="/map"
         >
           <MapPinned aria-hidden className="h-4 w-4" />
@@ -77,7 +83,7 @@ export function RescuerDashboard() {
       </section>
 
       {message ? (
-        <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700">
+        <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
           {message}
         </p>
       ) : null}
@@ -89,15 +95,15 @@ export function RescuerDashboard() {
       ) : null}
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div className="h-44 animate-pulse rounded-3xl bg-slate-100" key={index} />
+            <div className="h-44 animate-pulse rounded-[28px] bg-white/80" key={index} />
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {data?.signals.map((signal) => (
-            <article className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm" key={signal.id}>
+            <article className="rounded-[28px] border border-slate-100 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)]" key={signal.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-black text-slate-950">
@@ -107,7 +113,7 @@ export function RescuerDashboard() {
                     {signal.coordinates.latitude.toFixed(5)}, {signal.coordinates.longitude.toFixed(5)}
                   </p>
                 </div>
-                <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-700">
+                <span className={`rounded-full px-3 py-1 text-xs font-black ${statusTone(signal.status)}`}>
                   {SOS_STATUS_LABELS[signal.status]}
                 </span>
               </div>
@@ -115,10 +121,10 @@ export function RescuerDashboard() {
                 {signal.needs.map((need) => SOS_NEED_LABELS[need]).join(", ")}
               </p>
               {signal.note ? <p className="mt-2 text-sm leading-6 text-slate-600">{signal.note}</p> : null}
-              <div className="mt-3 grid gap-2">
+              <div className="mt-4 grid gap-2">
                 {STATUS_ACTIONS.map((action) => (
                   <button
-                    className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-black text-white disabled:bg-slate-300"
+                    className={`flex h-10 items-center justify-center gap-2 rounded-2xl px-3 text-xs font-black text-white disabled:bg-slate-300 ${action.className}`}
                     disabled={updatingId === signal.id || signal.status === action.status}
                     key={action.status}
                     onClick={() => void updateStatus(signal, action.status)}
@@ -136,8 +142,11 @@ export function RescuerDashboard() {
             </article>
           ))}
           {data?.signals.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm font-bold text-slate-500 sm:col-span-2">
-              Chưa có SOS đang chờ xử lý.
+            <div className="rounded-[28px] border border-dashed border-slate-300 bg-white p-8 text-center sm:col-span-2">
+              <p className="text-base font-black text-slate-950">Chưa có SOS đang chờ xử lý.</p>
+              <p className="mt-2 text-sm font-semibold text-slate-500">
+                Khi có tín hiệu mới, danh sách sẽ tự cập nhật.
+              </p>
             </div>
           ) : null}
         </div>

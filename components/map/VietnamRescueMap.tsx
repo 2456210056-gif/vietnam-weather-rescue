@@ -708,18 +708,18 @@ export function VietnamRescueMap() {
   }
 
   return (
-    <div className="space-y-4">
-      <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-5">
+      <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">
             Leaflet realtime
           </p>
           <h2 className="mt-2 text-3xl font-black text-slate-950">
             Bản đồ cứu hộ & thời tiết Việt Nam
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Leaflet + OpenStreetMap, marker SOS realtime, lớp mưa/mây/gió OpenWeather chống cache.
-            Không phụ thuộc Google Maps API.
+          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+            Leaflet + OpenStreetMap, marker SOS realtime và lớp thời tiết OpenWeather.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700 sm:flex">
@@ -730,9 +730,10 @@ export function VietnamRescueMap() {
             {realtime.isConnected ? "Realtime online" : "Polling fallback"}
           </span>
         </div>
+        </div>
       </section>
 
-      <section className="relative h-[76svh] min-h-[560px] overflow-hidden rounded-3xl border border-white/60 bg-slate-200 shadow-soft">
+      <section className="relative h-[76svh] min-h-[520px] overflow-hidden rounded-[32px] border border-white/70 bg-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.12)] lg:min-h-[620px]">
         <div ref={mapContainerRef} className="h-full w-full" />
 
         {!isMapReady ? (
@@ -771,7 +772,7 @@ export function VietnamRescueMap() {
           />
 
           <button
-            className="pointer-events-auto ml-auto flex w-fit items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 py-2 text-xs font-black text-white shadow-lg shadow-blue-950/10 disabled:bg-slate-400"
+            className="pointer-events-auto ml-auto flex w-fit items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 text-xs font-black text-white shadow-lg shadow-blue-950/10 disabled:bg-slate-400"
             disabled={geolocation.isLoading}
             onClick={() => void locateUser()}
             type="button"

@@ -95,7 +95,7 @@ export function ContactReportForm() {
   }
 
   return (
-    <form className="mt-5 grid gap-4" onSubmit={handleSubmit}>
+    <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
       <div className="grid gap-4 sm:grid-cols-2">
         <TextInput label="Họ tên" onChange={setFullName} placeholder="Nguyễn Văn A" value={fullName} />
         <TextInput label="Số điện thoại" onChange={setPhone} placeholder="090..." type="tel" value={phone} />
@@ -104,7 +104,7 @@ export function ContactReportForm() {
       <TextInput
         label="Khu vực"
         onChange={setArea}
-        placeholder="Ví dụ: Quảng Nam, Đà Nẵng, Cần Thơ..."
+        placeholder="Ví dụ: Đà Nẵng, Cần Thơ..."
         required
         value={area}
       />
@@ -112,7 +112,7 @@ export function ContactReportForm() {
       <label className="block">
         <span className="text-sm font-bold text-slate-800">Loại báo cáo</span>
         <select
-          className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none focus:border-red-600 focus:ring-4 focus:ring-red-100"
+          className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           onChange={(event) => setType(event.target.value as typeof type)}
           value={type}
         >
@@ -127,7 +127,7 @@ export function ContactReportForm() {
       <label className="block">
         <span className="text-sm font-bold text-slate-800">Nội dung</span>
         <textarea
-          className="mt-2 min-h-36 w-full resize-none rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none focus:border-red-600 focus:ring-4 focus:ring-red-100"
+          className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           minLength={10}
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Mô tả ngắn tình hình thực tế..."
@@ -136,16 +136,16 @@ export function ContactReportForm() {
         />
       </label>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/60 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-bold text-slate-900">Tọa độ GIS</p>
-          <p className="text-sm text-slate-600">{locationLabel}</p>
+          <p className="text-sm font-black text-slate-900">Tọa độ GIS</p>
+          <p className="text-sm font-semibold text-slate-600">{locationLabel}</p>
           {status === "permission_denied" || status === "error" || status === "unsupported" ? (
-            <p className="mt-1 text-xs text-red-700">{geolocationMessage}</p>
+            <p className="mt-1 text-xs font-semibold text-red-700">{geolocationMessage}</p>
           ) : null}
         </div>
         <button
-          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-black text-red-700"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 text-sm font-black text-blue-700"
           disabled={status === "loading"}
           onClick={requestLocation}
           type="button"
@@ -156,21 +156,21 @@ export function ContactReportForm() {
       </div>
 
       {mutation.error ? (
-        <p className="inline-flex items-center gap-2 rounded-2xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+        <p className="inline-flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
           <AlertCircle aria-hidden className="h-4 w-4" />
           {mutation.error.message}
         </p>
       ) : null}
 
       {mutation.isSuccess ? (
-        <p className="inline-flex items-center gap-2 rounded-2xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+        <p className="inline-flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
           <CheckCircle2 aria-hidden className="h-4 w-4" />
-          Báo cáo đã được ghi nhận.
+          Đã gửi báo cáo. Báo cáo được lưu vào MongoDB.
         </p>
       ) : null}
 
       <motion.button
-        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-red-200 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none"
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-sm font-black text-white shadow-lg shadow-blue-950/15 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none"
         disabled={mutation.isPending}
         type="submit"
         whileTap={{ scale: 0.98 }}
@@ -201,7 +201,7 @@ function TextInput({
     <label className="block">
       <span className="text-sm font-bold text-slate-800">{label}</span>
       <input
-        className="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-base outline-none focus:border-red-600 focus:ring-4 focus:ring-red-100"
+        className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         required={required}

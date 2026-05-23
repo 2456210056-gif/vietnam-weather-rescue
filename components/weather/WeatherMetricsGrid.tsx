@@ -25,28 +25,16 @@ function formatVisibility(value?: number) {
 }
 
 function getAqiTone(aqi?: number) {
-  if (aqi === undefined) {
-    return "blue";
-  }
-  if (aqi <= 50) {
-    return "green";
-  }
-  if (aqi <= 100) {
-    return "amber";
-  }
+  if (aqi === undefined) return "blue";
+  if (aqi <= 50) return "green";
+  if (aqi <= 100) return "amber";
   return "red";
 }
 
 function getUvTone(uv?: number) {
-  if (uv === undefined) {
-    return "blue";
-  }
-  if (uv < 3) {
-    return "green";
-  }
-  if (uv < 6) {
-    return "amber";
-  }
+  if (uv === undefined) return "blue";
+  if (uv < 3) return "green";
+  if (uv < 6) return "amber";
   return "red";
 }
 
@@ -58,8 +46,7 @@ export function WeatherMetricsGrid({
   visibility,
   feelsLike,
   uvIndex,
-  aqi,
-  sourceLabel
+  aqi
 }: WeatherMetricsGridProps) {
   return (
     <motion.section
@@ -83,7 +70,7 @@ export function WeatherMetricsGrid({
         value={humidity === undefined ? "--" : `${humidity}%`}
       />
       <WeatherMetricCard
-        helper={windDeg === undefined ? "Hướng gió đang cập nhật" : `Hướng ${windDeg}°`}
+        helper={windDeg === undefined ? "Đang cập nhật" : `Hướng ${windDeg}°`}
         icon={<Wind aria-hidden className="h-5 w-5" />}
         label="Gió"
         tone="blue"
@@ -108,25 +95,18 @@ export function WeatherMetricsGrid({
         value={feelsLike === undefined ? "--" : `${Math.round(feelsLike)}°C`}
       />
       <WeatherMetricCard
-        helper={sourceLabel}
-        icon={<CloudSun aria-hidden className="h-5 w-5" />}
-        label="Nguồn"
-        tone="green"
-        value={sourceLabel ?? "--"}
-      />
-      <WeatherMetricCard
         icon={<Droplets aria-hidden className="h-5 w-5" />}
         label="AQI"
         progress={aqi}
         tone={getAqiTone(aqi)}
-        value={aqi === undefined ? "Đang cập nhật" : String(aqi)}
+        value={aqi === undefined ? "Cập nhật" : String(aqi)}
       />
       <WeatherMetricCard
         icon={<CloudSun aria-hidden className="h-5 w-5" />}
         label="UV"
         progress={uvIndex === undefined ? undefined : uvIndex * 10}
         tone={getUvTone(uvIndex)}
-        value={uvIndex === undefined ? "Đang cập nhật" : String(uvIndex)}
+        value={uvIndex === undefined ? "Cập nhật" : String(uvIndex)}
       />
     </motion.section>
   );

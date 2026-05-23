@@ -113,7 +113,7 @@ export function PremiumWeatherScreen({
     <section className="relative overflow-hidden rounded-[40px] shadow-2xl shadow-blue-950/20 lg:min-h-[620px]">
       <WeatherCinematicBackground condition={condition} />
 
-      <div className="relative z-10 mx-auto grid min-h-[92svh] max-w-7xl grid-cols-1 gap-6 px-5 pb-8 pt-12 text-white sm:px-7 lg:min-h-[620px] lg:grid-cols-12 lg:px-8 lg:py-8">
+      <div className="relative z-10 mx-auto grid min-h-[82svh] max-w-7xl grid-cols-1 gap-6 px-5 pb-8 pt-10 text-white sm:px-7 lg:min-h-[620px] lg:grid-cols-12 lg:px-8 lg:py-8">
         {primaryAlert && (primaryAlert.severity === "warning" || primaryAlert.severity === "danger") ? (
           <div className="lg:col-span-12">
             <WeatherWarningBanner alert={primaryAlert} />
@@ -139,23 +139,23 @@ export function PremiumWeatherScreen({
           <AnimatePresence mode="wait">
             <motion.div
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="mt-12"
+              className="mt-10"
               exit={{ opacity: 0, y: -12, scale: 0.98 }}
               initial={{ opacity: 0, y: 18, scale: 0.98 }}
               key={`${weather.locationName}-${Math.round(weather.temperature)}-${condition}`}
               transition={{ duration: 0.42, ease: "easeOut" }}
             >
-              <p className="text-[6.6rem] font-light leading-none tracking-tight md:text-[8rem]">
+              <p className="text-[6rem] font-light leading-none tracking-tight md:text-[8rem]">
                 {Math.round(weather.temperature)}°
               </p>
               <p className="mt-3 text-4xl font-black capitalize">{weather.description}</p>
-              <div className="mt-10 space-y-2 text-2xl font-black">
+              <div className="mt-8 space-y-2 text-2xl font-black">
                 <p>
                   ↑ {high}° / ↓ {low}°
                 </p>
                 <p>Cảm giác như {Math.round(weather.feelsLike)}°</p>
               </div>
-              <p className="mt-8 max-w-2xl text-2xl font-black leading-9 text-white/90">
+              <p className="mt-7 max-w-2xl text-xl font-black leading-8 text-white/90 md:text-2xl md:leading-9">
                 {getWeatherSummary(weather)}
               </p>
               <div className="mt-5 flex flex-wrap gap-2 text-xs font-black">
