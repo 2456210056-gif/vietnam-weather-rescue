@@ -11,6 +11,7 @@ import {
   Waves
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 import { MapFreshnessBadge } from "@/components/map/MapFreshnessBadge";
@@ -200,6 +201,9 @@ function createWeatherTileLayer(
 
 export function VietnamRescueMap() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const querySosId = searchParams.get("sosId");
+  const shouldStartRouteFromQuery = searchParams.get("route") === "1";
   const isAuthenticated = status === "authenticated";
   const canManageSOS = session?.user?.role === "rescuer" || session?.user?.role === "admin";
   const realtime = useSOSRealtime(isAuthenticated);
@@ -217,6 +221,9 @@ export function VietnamRescueMap() {
   const userLayerRef = useRef<LayerGroup | null>(null);
   const rescueRouteLayerRef = useRef<LayerGroup | null>(null);
   const weatherLayersRef = useRef<TileLayer[]>([]);
+  const focusedQuerySignalRef = useRef<string | null>(null);
+  const routedQuerySignalRef = useRef<string | null>(null);
+  const startRescueDirectionsRef = useRef<((signal: SOSSignalDTO) => void) | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapError, setMapError] = useState("");
   const [userPosition, setUserPosition] = useState<GeolocationSnapshot | null>(null);
@@ -706,6 +713,45 @@ export function VietnamRescueMap() {
       setIsDrawingRoute(false);
     }
   }
+
+  useEffect(() => {
+    startRescueDirectionsRef.current = (signal: SOSSignalDTO) => {
+      void startRescueDirections(signal);
+    };
+  });
+
+  useEffect(() => {
+    if (!querySosId || !isMapReady) {
+      return;
+    }
+
+    const signal = signals.find((item) => item.id === querySosId);
+
+    if (!signal) {
+      return;
+    }
+
+    if (focusedQuerySignalRef.current !== signal.id) {
+      setSelectedSignalId(signal.id);
+      mapRef.current?.setView([signal.coordinates.latitude, signal.coordinates.longitude], 13);
+      focusedQuerySignalRef.current = signal.id;
+    }
+
+    if (
+      shouldStartRouteFromQuery &&
+      canManageSOS &&
+      routedQuerySignalRef.current !== signal.id
+    ) {
+      routedQuerySignalRef.current = signal.id;
+      startRescueDirectionsRef.current?.(signal);
+    }
+  }, [
+    canManageSOS,
+    isMapReady,
+    querySosId,
+    shouldStartRouteFromQuery,
+    signals
+  ]);
 
   return (
     <div className="space-y-5">

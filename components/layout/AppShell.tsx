@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Navigation } from "@/components/layout/Navigation";
 import { RouteTransition } from "@/components/layout/RouteTransition";
+import { SosRealtimeNotifier } from "@/components/sos/SosRealtimeNotifier";
 import { FloatingActionRail } from "@/components/ui/FloatingActionRail";
 
 type AppShellProps = {
@@ -18,6 +19,7 @@ export function AppShell({ children }: AppShellProps) {
         <Footer />
       </div>
       <FloatingActionRail />
+      <SosRealtimeNotifier />
     </div>
   );
 }

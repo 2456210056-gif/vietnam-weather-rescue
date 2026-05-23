@@ -1,6 +1,6 @@
-export const SOS_CHANNEL = "sos-alerts-v1";
+export const SOS_CHANNEL = "sos-alerts";
 
 export const SOS_EVENTS = {
-  created: "sos.created",
+  created: "new-sos",
   updated: "sos.updated"
 } as const;

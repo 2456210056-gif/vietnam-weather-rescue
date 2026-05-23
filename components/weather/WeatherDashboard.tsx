@@ -1,52 +1,106 @@
 "use client";
 
 import { AlertCircle, Loader2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { WeatherCard } from "@/components/weather/WeatherCard";
 import { WeatherLocationSelector } from "@/components/weather/WeatherLocationSelector";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useWeather } from "@/hooks/useWeather";
+import {
+  getSavedWeatherLocation,
+  saveWeatherLocation,
+  subscribeWeatherLocation,
+  type SavedWeatherLocation
+} from "@/lib/weather/location-storage";
 import {
   DEFAULT_VIETNAM_LOCATION_ID,
   getVietnamLocationById
 } from "@/lib/weather/vietnam-34-locations";
 import type { WeatherLocationMode } from "@/types/weather";
 
-const STORAGE_KEY = "selectedWeatherLocationId";
+const LEGACY_LOCATION_ID_STORAGE_KEY = "selectedWeatherLocationId";
+let cachedLegacyLocationId: string | null = null;
+let cachedLegacyLocation: SavedWeatherLocation | null = null;
 
-function getInitialLocationId() {
+function createLocationFromVietnamId(id?: string | null): SavedWeatherLocation {
+  const location = getVietnamLocationById(id);
+
+  return {
+    lat: location.latitude,
+    lon: location.longitude,
+    locationName: location.name,
+    source: location.id === DEFAULT_VIETNAM_LOCATION_ID ? "default" : "manual",
+    updatedAt: 0,
+    locationId: location.id
+  };
+}
+
+function getLegacySavedLocation() {
   if (typeof window === "undefined") {
-    return DEFAULT_VIETNAM_LOCATION_ID;
+    return null;
   }
 
-  return getVietnamLocationById(window.localStorage.getItem(STORAGE_KEY)).id;
+  const legacyLocationId = window.localStorage.getItem(LEGACY_LOCATION_ID_STORAGE_KEY);
+
+  if (!legacyLocationId) {
+    cachedLegacyLocationId = null;
+    cachedLegacyLocation = null;
+    return null;
+  }
+
+  if (legacyLocationId === cachedLegacyLocationId) {
+    return cachedLegacyLocation;
+  }
+
+  cachedLegacyLocationId = legacyLocationId;
+  cachedLegacyLocation = {
+    ...createLocationFromVietnamId(legacyLocationId),
+    source: "manual" as const
+  };
+
+  return cachedLegacyLocation;
+}
+
+function getStoredWeatherLocation() {
+  return getSavedWeatherLocation() ?? getLegacySavedLocation();
+}
+
+function subscribeHydration() {
+  return () => {};
 }
 
 export function WeatherDashboard() {
   const geolocation = useGeolocation();
-  const [locationId, setLocationId] = useState(getInitialLocationId);
-  const [mode, setMode] = useState<WeatherLocationMode>("representative");
-  const [gpsLocation, setGpsLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  const hasHydrated = useSyncExternalStore(subscribeHydration, () => true, () => false);
+  const storedWeatherLocation = useSyncExternalStore(
+    subscribeWeatherLocation,
+    getStoredWeatherLocation,
+    () => null
+  );
+  const defaultLocation = useMemo(
+    () => createLocationFromVietnamId(DEFAULT_VIETNAM_LOCATION_ID),
+    []
+  );
 
-  const selectedLocation = useMemo(() => getVietnamLocationById(locationId), [locationId]);
+  const selectedWeatherLocation = hasHydrated
+    ? storedWeatherLocation ?? defaultLocation
+    : null;
+  const selectorLocation = selectedWeatherLocation ?? defaultLocation;
+  const locationId = selectorLocation.locationId ?? DEFAULT_VIETNAM_LOCATION_ID;
+  const mode: WeatherLocationMode =
+    selectorLocation.source === "gps" ? "gps" : "representative";
+
   const weatherInput = useMemo(() => {
-    if (mode === "gps" && gpsLocation) {
-      return {
-        latitude: gpsLocation.latitude,
-        longitude: gpsLocation.longitude,
-        locationName: "Vị trí hiện tại"
-      };
+    if (!selectedWeatherLocation) {
+      return null;
     }
 
     return {
-      latitude: selectedLocation.latitude,
-      longitude: selectedLocation.longitude,
-      locationName: selectedLocation.name
+      latitude: selectedWeatherLocation.lat,
+      longitude: selectedWeatherLocation.lon,
+      locationName: selectedWeatherLocation.locationName
     };
-  }, [gpsLocation, mode, selectedLocation]);
+  }, [selectedWeatherLocation]);
 
   const weatherQuery = useWeather(weatherInput);
 
@@ -57,11 +111,19 @@ export function WeatherDashboard() {
       return;
     }
 
-    setGpsLocation({
-      latitude: position.latitude,
-      longitude: position.longitude
+    saveWeatherLocation({
+      lat: position.latitude,
+      lon: position.longitude,
+      locationName: "Vị trí hiện tại",
+      source: "gps",
+      updatedAt: Date.now()
     });
-    setMode("gps");
+  }
+
+  function handleRefresh() {
+    if (weatherInput) {
+      void weatherQuery.refetch();
+    }
   }
 
   return (
@@ -70,11 +132,19 @@ export function WeatherDashboard() {
         geolocationStatus={geolocation.status}
         isRefreshing={weatherQuery.isFetching}
         mode={mode}
-        onRefresh={() => void weatherQuery.refetch()}
+        onRefresh={handleRefresh}
         onSelectLocation={(location) => {
-          setLocationId(location.id);
-          setMode("representative");
-          window.localStorage.setItem(STORAGE_KEY, location.id);
+          const nextLocation: SavedWeatherLocation = {
+            lat: location.latitude,
+            lon: location.longitude,
+            locationName: location.name,
+            source: "manual",
+            updatedAt: Date.now(),
+            locationId: location.id
+          };
+
+          saveWeatherLocation(nextLocation);
+          window.localStorage.setItem(LEGACY_LOCATION_ID_STORAGE_KEY, location.id);
         }}
         onUseCurrentLocation={() => void handleUseCurrentLocation()}
         selectedLocationId={locationId}
@@ -86,7 +156,9 @@ export function WeatherDashboard() {
         </p>
       ) : null}
 
-      {weatherQuery.isLoading && !weatherQuery.data ? <WeatherSkeleton /> : null}
+      {(weatherQuery.isLoading || !selectedWeatherLocation) && !weatherQuery.data ? (
+        <WeatherSkeleton />
+      ) : null}
 
       {weatherQuery.error ? (
         <div className="rounded-3xl border border-red-100 bg-white/90 p-5 shadow-soft">
@@ -99,7 +171,7 @@ export function WeatherDashboard() {
           </p>
           <button
             className="mt-4 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
-            onClick={() => void weatherQuery.refetch()}
+            onClick={handleRefresh}
             type="button"
           >
             Thử lại
@@ -111,7 +183,7 @@ export function WeatherDashboard() {
         <WeatherCard
           isRefreshing={weatherQuery.isFetching}
           mode={mode}
-          onRefresh={() => void weatherQuery.refetch()}
+          onRefresh={handleRefresh}
           weather={weatherQuery.data}
         />
       ) : null}
