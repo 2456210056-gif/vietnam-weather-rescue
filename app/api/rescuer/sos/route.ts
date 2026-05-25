@@ -13,7 +13,7 @@ export async function GET() {
 
     const signals = await SOSSignal.find({
       status: {
-        $in: ["PENDING", "ACKNOWLEDGED", "APPROACHING", "REACHED"]
+        $in: ["PENDING", "ACKNOWLEDGED", "APPROACHING", "REACHED", "RESOLVED", "CANCELLED"]
       }
     })
       .sort({ createdAt: -1 })

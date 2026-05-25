@@ -83,7 +83,7 @@ export const WEATHER_OVERLAY_LAYERS: MapLayerConfig[] = [
     attribution: "OpenWeather",
     description: "Lớp mưa từ OpenWeather Maps, URL được gắn cache key khi tải.",
     source: "OpenWeather",
-    opacity: 0.62,
+    opacity: 0.54,
     realtime: true,
     requiresOpenWeatherKey: true
   },
@@ -95,7 +95,7 @@ export const WEATHER_OVERLAY_LAYERS: MapLayerConfig[] = [
     attribution: "OpenWeather",
     description: "Lớp mây từ OpenWeather Maps, dùng dữ liệu current map mặc định của provider.",
     source: "OpenWeather",
-    opacity: 0.55,
+    opacity: 0.38,
     realtime: true,
     requiresOpenWeatherKey: true
   },
@@ -107,7 +107,7 @@ export const WEATHER_OVERLAY_LAYERS: MapLayerConfig[] = [
     attribution: "OpenWeather",
     description: "Lớp gió từ OpenWeather Maps, dùng cache key để tránh tile cũ.",
     source: "OpenWeather",
-    opacity: 0.48,
+    opacity: 0.4,
     realtime: true,
     requiresOpenWeatherKey: true
   },
@@ -119,7 +119,7 @@ export const WEATHER_OVERLAY_LAYERS: MapLayerConfig[] = [
     attribution: "OpenWeather",
     description: "Lớp nhiệt độ từ OpenWeather Maps, không hardcode API key.",
     source: "OpenWeather",
-    opacity: 0.45,
+    opacity: 0.34,
     realtime: true,
     requiresOpenWeatherKey: true
   },
@@ -131,7 +131,7 @@ export const WEATHER_OVERLAY_LAYERS: MapLayerConfig[] = [
     attribution: "OpenWeather",
     description: "Lớp áp suất nếu OpenWeather hỗ trợ cho API key hiện tại.",
     source: "OpenWeather",
-    opacity: 0.42,
+    opacity: 0.34,
     realtime: true,
     requiresOpenWeatherKey: true
   }

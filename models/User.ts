@@ -11,6 +11,9 @@ export interface IUser extends Document {
   avatar?: string;
   image?: string;
   role: UserRole;
+  isActive: boolean;
+  deletedAt?: Date | null;
+  deletedBy?: Types.ObjectId | null;
   favoriteLocations: Types.ObjectId[];
   emergencyContacts: Types.ObjectId[];
   emailVerified?: Date;
@@ -66,6 +69,21 @@ const UserSchema = new Schema<IUser>(
       enum: USER_ROLES,
       default: "user",
       index: true
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+      index: true
+    },
+    deletedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null
     },
     favoriteLocations: [
       {

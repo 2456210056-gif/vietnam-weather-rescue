@@ -86,7 +86,17 @@ export async function POST(request: Request) {
       coordinates: [parsed.data.longitude, parsed.data.latitude]
     },
     accuracy: parsed.data.accuracy,
-    lastStatusAt: now
+    lastStatusAt: now,
+    timeline: [
+      {
+        type: "created",
+        timestamp: now,
+        actorId: session.user.id,
+        actorName: fullName,
+        fromStatus: null,
+        toStatus: "PENDING"
+      }
+    ]
   });
 
   await signal.populate("user", "fullName name email phone");

@@ -1,5 +1,5 @@
 import type { Types } from "mongoose";
-import type { SOSNeed, SOSSignalDTO, SOSStatus } from "@/types/sos";
+import type { SOSNeed, SOSSignalDTO, SOSStatus, SOSTimelineEvent } from "@/types/sos";
 
 type ObjectIdLike = Types.ObjectId | string;
 
@@ -24,6 +24,13 @@ type SOSSignalLike = {
   addressText?: string | null;
   status: SOSStatus;
   assignedRescuer?: ObjectIdLike | null;
+  acceptedAt?: Date | string | null;
+  resolvedAt?: Date | string | null;
+  timeline?: Array<
+    Omit<SOSTimelineEvent, "timestamp"> & {
+      timestamp: Date | string;
+    }
+  >;
   location: {
     coordinates: [number, number];
   };
@@ -77,6 +84,34 @@ function getReporterPhone(signal: SOSSignalLike): string | null {
   return user.phone ?? null;
 }
 
+function serializeTimeline(signal: SOSSignalLike): SOSTimelineEvent[] {
+  const existingTimeline = signal.timeline ?? [];
+
+  if (existingTimeline.length) {
+    return existingTimeline.map((item) => ({
+      type: item.type,
+      timestamp: toISODate(item.timestamp),
+      actorId: item.actorId ?? null,
+      actorName: item.actorName ?? null,
+      fromStatus: item.fromStatus ?? null,
+      toStatus: item.toStatus ?? null,
+      note: item.note ?? null
+    }));
+  }
+
+  return [
+    {
+      type: "created",
+      timestamp: toISODate(signal.createdAt),
+      actorId: toId(signal.user),
+      actorName: getReporterName(signal),
+      fromStatus: null,
+      toStatus: "PENDING",
+      note: null
+    }
+  ];
+}
+
 export function serializeSOSSignal(signal: SOSSignalLike): SOSSignalDTO {
   const [longitude, latitude] = signal.location.coordinates;
 
@@ -95,6 +130,10 @@ export function serializeSOSSignal(signal: SOSSignalLike): SOSSignalDTO {
       accuracy: signal.accuracy ?? null
     },
     assignedRescuerId: signal.assignedRescuer ? toId(signal.assignedRescuer) : null,
+    assignedRescuerName: null,
+    acceptedAt: signal.acceptedAt ? toISODate(signal.acceptedAt) : null,
+    resolvedAt: signal.resolvedAt ? toISODate(signal.resolvedAt) : null,
+    timeline: serializeTimeline(signal),
     createdAt: toISODate(signal.createdAt),
     updatedAt: toISODate(signal.updatedAt),
     lastStatusAt: toISODate(signal.lastStatusAt)

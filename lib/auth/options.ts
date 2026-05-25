@@ -90,12 +90,16 @@ const providers: NextAuthOptions["providers"] = [
 
       await connectMongo();
       const dbUser = await User.findOne({ email: normalizeEmail(email) })
-        .select("+passwordHash +password fullName name email avatar image role")
+        .select("+passwordHash +password fullName name email avatar image role isActive deletedAt")
         .exec();
 
       const storedHash = dbUser?.passwordHash ?? dbUser?.password;
 
       if (!dbUser || !storedHash) {
+        return null;
+      }
+
+      if (dbUser.isActive === false || dbUser.deletedAt) {
         return null;
       }
 
@@ -160,6 +164,15 @@ export const authOptions: NextAuthOptions = {
       }
 
       await connectMongo();
+      const existingOAuthUser = await User.findOne({ email: normalizeEmail(user.email) })
+        .select("_id isActive deletedAt")
+        .lean()
+        .exec();
+
+      if (existingOAuthUser?.isActive === false || existingOAuthUser?.deletedAt) {
+        return false;
+      }
+
       const dbUser = await User.findOneAndUpdate(
         { email: normalizeEmail(user.email) },
         {

@@ -21,6 +21,23 @@ export const SOS_STATUSES = [
 export type SOSNeed = (typeof SOS_NEEDS)[number];
 export type SOSStatus = (typeof SOS_STATUSES)[number];
 
+export type SOSTimelineEvent = {
+  type:
+    | "created"
+    | "accepted"
+    | "in_progress"
+    | "reached"
+    | "resolved"
+    | "cancelled"
+    | "restored_to_pending";
+  timestamp: string;
+  actorId?: string | null;
+  actorName?: string | null;
+  fromStatus?: SOSStatus | null;
+  toStatus?: SOSStatus | null;
+  note?: string | null;
+};
+
 export const SOS_NEED_LABELS: Record<SOSNeed, string> = {
   TRAPPED: "Bị mắc kẹt",
   INJURY: "Bị thương",
@@ -56,6 +73,10 @@ export type SOSSignalDTO = {
     accuracy?: number | null;
   };
   assignedRescuerId?: string | null;
+  assignedRescuerName?: string | null;
+  acceptedAt?: string | null;
+  resolvedAt?: string | null;
+  timeline?: SOSTimelineEvent[];
   createdAt: string;
   updatedAt: string;
   lastStatusAt: string;

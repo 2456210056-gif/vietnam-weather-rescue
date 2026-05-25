@@ -4,7 +4,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, Map, Menu, Navigation, PhoneCall, Share2 } from "lucide-react";
+import { AlertTriangle, Map, Menu, Navigation, PhoneCall, Share2, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type FloatingActionRailProps = {
@@ -69,15 +69,13 @@ export function FloatingActionRail({ className = "" }: FloatingActionRailProps) 
     <div
       aria-label="Thao tác nhanh cứu hộ"
       className={`pointer-events-auto fixed bottom-24 right-4 z-[80] md:bottom-8 md:right-8 ${className}`}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
       ref={menuRef}
     >
       <AnimatePresence>
         {open ? (
           <motion.div
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="absolute bottom-20 right-0 w-64 rounded-3xl border border-white/20 bg-slate-950/80 p-3 text-white shadow-2xl shadow-blue-950/30 backdrop-blur-2xl"
+            className="absolute bottom-20 right-0 w-64 rounded-3xl border border-white/15 bg-slate-950/95 p-3 text-white shadow-2xl shadow-blue-950/30 backdrop-blur-xl"
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             initial={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
@@ -136,8 +134,8 @@ export function FloatingActionRail({ className = "" }: FloatingActionRailProps) 
         onClick={() => setOpen((current) => !current)}
         type="button"
       >
-        <Menu aria-hidden className="h-6 w-6" />
-        <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full border-2 border-white bg-red-600 shadow-[0_0_18px_rgba(220,38,38,0.7)]" />
+        {open ? <X aria-hidden className="h-6 w-6" /> : <Menu aria-hidden className="h-6 w-6" />}
+        <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full border border-white bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.55)]" />
       </button>
     </div>
   );

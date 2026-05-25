@@ -22,6 +22,55 @@ type ReportInput = {
   longitude?: unknown;
 };
 
+function serializeReport(report: {
+  _id: { toString(): string };
+  fullName?: string;
+  email?: string;
+  area: string;
+  type: WeatherReportType;
+  description: string;
+  status: string;
+  location?: { coordinates?: number[] };
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  const coordinates = report.location?.coordinates;
+
+  return {
+    id: report._id.toString(),
+    fullName: report.fullName ?? null,
+    email: report.email ?? null,
+    area: report.area,
+    type: report.type,
+    description: report.description,
+    status: report.status,
+    latitude: Array.isArray(coordinates) ? coordinates[1] : null,
+    longitude: Array.isArray(coordinates) ? coordinates[0] : null,
+    createdAt: report.createdAt.toISOString(),
+    updatedAt: report.updatedAt.toISOString()
+  };
+}
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ reports: [] });
+  }
+
+  await connectMongo();
+
+  const reports = await WeatherReport.find({ user: session.user.id })
+    .sort({ createdAt: -1 })
+    .limit(12)
+    .lean()
+    .exec();
+
+  return NextResponse.json({
+    reports: reports.map(serializeReport)
+  });
+}
+
 function cleanText(value: unknown, maxLength = 200) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 }
@@ -115,13 +164,7 @@ export async function POST(request: Request) {
   return NextResponse.json(
     {
       message: "Báo cáo đã được gửi cho hệ thống điều phối.",
-      report: {
-        id: report._id.toString(),
-        area: report.area,
-        type: report.type,
-        status: report.status,
-        createdAt: report.createdAt.toISOString()
-      }
+      report: serializeReport(report)
     },
     { status: 201 }
   );

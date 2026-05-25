@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import useSWR from "swr";
 import { useGeolocation, type GeolocationSnapshot } from "@/hooks/useGeolocation";
 import { useSOSRealtime } from "@/hooks/useSOSRealtime";
@@ -79,6 +80,28 @@ export function SOSPanel() {
     "idle"
   );
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!isModalOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsModalOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isModalOpen]);
 
   const { data, mutate } = useSWR<SOSListResponse>(isAuthenticated ? "/api/sos" : null, {
     revalidateOnFocus: true,
@@ -307,22 +330,27 @@ export function SOSPanel() {
         </div>
       </section>
 
-      <AnimatePresence>
+      {typeof document !== "undefined"
+        ? createPortal(
+            <AnimatePresence>
         {isModalOpen ? (
           <motion.div
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[90] flex items-end justify-center bg-slate-950/55 px-3 pb-3 backdrop-blur-sm sm:items-center sm:p-6"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm sm:p-6"
             exit={{ opacity: 0 }}
             initial={{ opacity: 0 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
+            onClick={() => setIsModalOpen(false)}
           >
             <motion.section
-              animate={{ opacity: 1, y: 0 }}
-              className="max-h-[92svh] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-4 shadow-2xl will-change-transform sm:p-5"
-              exit={{ opacity: 0, y: 18 }}
-              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl will-change-transform"
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              onClick={(event) => event.stopPropagation()}
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
+              <div className="shrink-0 border-b border-slate-200 p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-700">
@@ -341,7 +369,9 @@ export function SOSPanel() {
                   <X aria-hidden className="h-5 w-5" />
                 </button>
               </div>
+              </div>
 
+              <div className="flex-1 overflow-y-auto px-4 py-4 overscroll-contain sm:px-5">
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {QUICK_NEEDS.map((need) => {
                   const active = selectedNeeds.includes(need);
@@ -422,8 +452,9 @@ export function SOSPanel() {
                   {message}
                 </p>
               ) : null}
+              </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="grid shrink-0 gap-3 border-t border-slate-200 p-4 sm:grid-cols-2 sm:p-5">
                 {!isAuthenticated && status !== "loading" ? (
                   <button
                     className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white sm:col-span-2"
@@ -451,7 +482,10 @@ export function SOSPanel() {
             </motion.section>
           </motion.div>
         ) : null}
-      </AnimatePresence>
+      </AnimatePresence>,
+            document.body
+          )
+        : null}
     </div>
   );
 }

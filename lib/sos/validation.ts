@@ -16,7 +16,7 @@ type SOSCreateInput = {
 
 type MutableSOSStatus = Extract<
   SOSStatus,
-  "ACKNOWLEDGED" | "APPROACHING" | "REACHED" | "RESOLVED" | "CANCELLED"
+  "PENDING" | "ACKNOWLEDGED" | "APPROACHING" | "REACHED" | "RESOLVED" | "CANCELLED"
 >;
 
 type SOSStatusInput = {
@@ -37,10 +37,14 @@ type ValidationResult<T> =
 const STATUS_ALIASES: Record<string, MutableSOSStatus> = {
   accepted: "ACKNOWLEDGED",
   acknowledged: "ACKNOWLEDGED",
+  pending: "PENDING",
+  restored_to_pending: "PENDING",
   approaching: "APPROACHING",
+  in_progress: "APPROACHING",
   reached: "REACHED",
   resolved: "RESOLVED",
   cancelled: "CANCELLED",
+  PENDING: "PENDING",
   ACKNOWLEDGED: "ACKNOWLEDGED",
   APPROACHING: "APPROACHING",
   REACHED: "REACHED",

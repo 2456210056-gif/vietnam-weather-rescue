@@ -1,9 +1,10 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, LocateFixed, Send } from "lucide-react";
 import { motion } from "framer-motion";
+import { AlertCircle, CheckCircle2, FileText, LocateFixed, RefreshCw, Send } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
+import useSWR from "swr";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
 const REPORT_TYPES = [
@@ -25,6 +26,40 @@ type ReportPayload = {
   longitude?: number;
 };
 
+type ReportDTO = {
+  id: string;
+  fullName?: string | null;
+  email?: string | null;
+  area: string;
+  type: string;
+  description: string;
+  status: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ReportsResponse = {
+  reports: ReportDTO[];
+};
+
+type ReportSubmitResponse = {
+  message?: string;
+  report?: ReportDTO;
+};
+
+async function fetchReports(url: string) {
+  const response = await fetch(url, { cache: "no-store" });
+  const data = (await response.json().catch(() => ({}))) as ReportsResponse & { message?: string };
+
+  if (!response.ok) {
+    throw new Error(data.message ?? "Không thể tải lịch sử báo cáo.");
+  }
+
+  return data;
+}
+
 async function submitReport(payload: ReportPayload) {
   const response = await fetch("/api/reports", {
     method: "POST",
@@ -34,13 +69,28 @@ async function submitReport(payload: ReportPayload) {
     body: JSON.stringify(payload)
   });
 
-  const data = (await response.json().catch(() => ({}))) as { message?: string };
+  const data = (await response.json().catch(() => ({}))) as ReportSubmitResponse;
 
   if (!response.ok) {
     throw new Error(data.message ?? "Không thể gửi báo cáo.");
   }
 
   return data;
+}
+
+function formatReportTime(value: string) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit"
+  }).format(new Date(value));
+}
+
+function getReportStatusLabel(status: string) {
+  if (status === "RESOLVED") return "Đã xử lý";
+  if (status === "REVIEWING") return "Đang xem xét";
+  return "Đã ghi nhận";
 }
 
 export function ContactReportForm() {
@@ -50,17 +100,27 @@ export function ContactReportForm() {
   const [area, setArea] = useState("");
   const [type, setType] = useState<(typeof REPORT_TYPES)[number]["value"]>("FLOOD");
   const [description, setDescription] = useState("");
+  const [submittedReport, setSubmittedReport] = useState<ReportDTO | null>(null);
   const { status, position, message: geolocationMessage, requestLocation } = useGeolocation();
+  const {
+    data: reportsData,
+    isLoading: isLoadingReports,
+    mutate: mutateReports
+  } = useSWR<ReportsResponse>("/api/reports", fetchReports, {
+    revalidateOnFocus: true
+  });
 
   const mutation = useMutation({
     mutationFn: submitReport,
-    onSuccess() {
+    onSuccess(data) {
+      setSubmittedReport(data.report ?? null);
       setFullName("");
       setEmail("");
       setPhone("");
       setArea("");
       setType("FLOOD");
       setDescription("");
+      void mutateReports();
     }
   });
 
@@ -95,90 +155,177 @@ export function ContactReportForm() {
   }
 
   return (
-    <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <TextInput label="Họ tên" onChange={setFullName} placeholder="Nguyễn Văn A" value={fullName} />
-        <TextInput label="Số điện thoại" onChange={setPhone} placeholder="090..." type="tel" value={phone} />
-      </div>
-      <TextInput label="Email" onChange={setEmail} placeholder="email@example.com" type="email" value={email} />
-      <TextInput
-        label="Khu vực"
-        onChange={setArea}
-        placeholder="Ví dụ: Đà Nẵng, Cần Thơ..."
-        required
-        value={area}
-      />
-
-      <label className="block">
-        <span className="text-sm font-bold text-slate-800">Loại báo cáo</span>
-        <select
-          className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-          onChange={(event) => setType(event.target.value as typeof type)}
-          value={type}
-        >
-          {REPORT_TYPES.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="block">
-        <span className="text-sm font-bold text-slate-800">Nội dung</span>
-        <textarea
-          className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-          minLength={10}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Mô tả ngắn tình hình thực tế..."
+    <div className="mt-6 grid gap-5">
+      <form className="grid gap-4" onSubmit={handleSubmit}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextInput label="Họ tên" onChange={setFullName} placeholder="Nguyễn Văn A" value={fullName} />
+          <TextInput label="Số điện thoại" onChange={setPhone} placeholder="090..." type="tel" value={phone} />
+        </div>
+        <TextInput label="Email" onChange={setEmail} placeholder="email@example.com" type="email" value={email} />
+        <TextInput
+          label="Khu vực"
+          onChange={setArea}
+          placeholder="Ví dụ: Đà Nẵng, Cần Thơ..."
           required
-          value={description}
+          value={area}
         />
-      </label>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-black text-slate-900">Tọa độ GIS</p>
-          <p className="text-sm font-semibold text-slate-600">{locationLabel}</p>
-          {status === "permission_denied" || status === "error" || status === "unsupported" ? (
-            <p className="mt-1 text-xs font-semibold text-red-700">{geolocationMessage}</p>
+        <label className="block">
+          <span className="text-sm font-bold text-slate-800">Loại báo cáo</span>
+          <select
+            className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            onChange={(event) => setType(event.target.value as typeof type)}
+            value={type}
+          >
+            {REPORT_TYPES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-bold text-slate-800">Nội dung</span>
+          <textarea
+            className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-950 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            minLength={10}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Mô tả ngắn tình hình thực tế..."
+            required
+            value={description}
+          />
+        </label>
+
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-black text-slate-900">Tọa độ GIS</p>
+            <p className="text-sm font-semibold text-slate-600">{locationLabel}</p>
+            {status === "permission_denied" || status === "error" || status === "unsupported" ? (
+              <p className="mt-1 text-xs font-semibold text-red-700">{geolocationMessage}</p>
+            ) : null}
+          </div>
+          <button
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 text-sm font-black text-blue-700"
+            disabled={status === "loading"}
+            onClick={requestLocation}
+            type="button"
+          >
+            <LocateFixed aria-hidden className="h-4 w-4" />
+            Lấy vị trí
+          </button>
+        </div>
+
+        {mutation.error ? (
+          <p className="inline-flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+            <AlertCircle aria-hidden className="h-4 w-4" />
+            {mutation.error.message}
+          </p>
+        ) : null}
+
+        {mutation.isSuccess ? (
+          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+              <div>
+                <p className="font-black">Đã gửi báo cáo</p>
+                <p className="mt-1 text-sm font-semibold leading-6">
+                  Báo cáo đã được lưu vào hệ thống.
+                  {submittedReport ? ` Mã báo cáo: ${submittedReport.id.slice(-6).toUpperCase()}.` : ""}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {submittedReport ? (
+                <a
+                  className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-black text-white"
+                  href={`#report-${submittedReport.id}`}
+                >
+                  Xem báo cáo
+                </a>
+              ) : null}
+              <button
+                className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-black text-emerald-800"
+                onClick={() => mutation.reset()}
+                type="button"
+              >
+                Gửi báo cáo khác
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        <motion.button
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-sm font-black text-white shadow-lg shadow-blue-950/15 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none"
+          disabled={mutation.isPending}
+          type="submit"
+          whileTap={{ scale: 0.98 }}
+        >
+          <Send aria-hidden className="h-4 w-4" />
+          {mutation.isPending ? "Đang gửi..." : "Gửi báo cáo"}
+        </motion.button>
+      </form>
+
+      <section className="rounded-[28px] border border-slate-200 bg-white/95 p-4 shadow-xl shadow-slate-950/5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-black text-slate-950">Báo cáo đã gửi</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-600">
+              Lịch sử báo cáo gần đây được lưu trong hệ thống.
+            </p>
+          </div>
+          <button
+            aria-label="Làm mới lịch sử báo cáo"
+            className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
+            onClick={() => void mutateReports()}
+            type="button"
+          >
+            <RefreshCw aria-hidden className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          {isLoadingReports ? <div className="h-24 animate-pulse rounded-2xl bg-slate-100" /> : null}
+
+          {(reportsData?.reports ?? []).map((report) => (
+            <article
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              id={`report-${report.id}`}
+              key={report.id}
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-black text-slate-950">
+                    <FileText aria-hidden className="h-4 w-4 text-blue-600" />
+                    {report.type} · {report.area}
+                  </p>
+                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-slate-600">
+                    {report.description}
+                  </p>
+                  <p className="mt-2 text-xs font-bold text-slate-500">
+                    Mã: {report.id.slice(-6).toUpperCase()} · {formatReportTime(report.createdAt)}
+                  </p>
+                  {typeof report.latitude === "number" && typeof report.longitude === "number" ? (
+                    <p className="mt-1 text-xs font-bold text-slate-500">
+                      GIS: {report.latitude.toFixed(5)}, {report.longitude.toFixed(5)}
+                    </p>
+                  ) : null}
+                </div>
+                <span className="w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                  {getReportStatusLabel(report.status)}
+                </span>
+              </div>
+            </article>
+          ))}
+
+          {!isLoadingReports && (reportsData?.reports ?? []).length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm font-bold text-slate-500">
+              Chưa có báo cáo nào được gửi.
+            </div>
           ) : null}
         </div>
-        <button
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 text-sm font-black text-blue-700"
-          disabled={status === "loading"}
-          onClick={requestLocation}
-          type="button"
-        >
-          <LocateFixed aria-hidden className="h-4 w-4" />
-          Lấy vị trí
-        </button>
-      </div>
-
-      {mutation.error ? (
-        <p className="inline-flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
-          <AlertCircle aria-hidden className="h-4 w-4" />
-          {mutation.error.message}
-        </p>
-      ) : null}
-
-      {mutation.isSuccess ? (
-        <p className="inline-flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-          <CheckCircle2 aria-hidden className="h-4 w-4" />
-          Đã gửi báo cáo. Báo cáo được lưu vào MongoDB.
-        </p>
-      ) : null}
-
-      <motion.button
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-sm font-black text-white shadow-lg shadow-blue-950/15 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none"
-        disabled={mutation.isPending}
-        type="submit"
-        whileTap={{ scale: 0.98 }}
-      >
-        <Send aria-hidden className="h-4 w-4" />
-        {mutation.isPending ? "Đang gửi..." : "Gửi báo cáo"}
-      </motion.button>
-    </form>
+      </section>
+    </div>
   );
 }
 
@@ -201,7 +348,7 @@ function TextInput({
     <label className="block">
       <span className="text-sm font-bold text-slate-800">{label}</span>
       <input
-        className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+        className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         required={required}

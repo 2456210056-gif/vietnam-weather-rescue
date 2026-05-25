@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
 import { AppProviders } from "@/components/providers/AppProviders";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
-const inter = Inter({
+const beVietnamPro = Be_Vietnam_Pro({
+  weight: ["400", "500", "600", "700", "800", "900"],
   subsets: ["latin", "vietnamese"],
   display: "swap",
-  variable: "--font-inter"
+  variable: "--font-be-vietnam-pro"
 });
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html data-scroll-behavior="smooth" lang="vi">
-      <body className={`${inter.variable} font-sans text-slate-950 antialiased`}>
+      <body className={`${beVietnamPro.variable} font-sans text-slate-950 antialiased`}>
         <AppProviders>
           <AppShell>{children}</AppShell>
         </AppProviders>

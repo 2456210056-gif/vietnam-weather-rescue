@@ -15,7 +15,7 @@ export async function GET() {
 
     const [users, sosSignals, totalUsers, totalSOS, pendingSOS, resolvedSOS] = await Promise.all([
       User.find({})
-        .select("_id fullName name email phone role createdAt")
+        .select("_id fullName name email phone role isActive deletedAt createdAt")
         .sort({ createdAt: -1 })
         .limit(80)
         .lean()
@@ -44,6 +44,12 @@ export async function GET() {
         email: user.email,
         phone: user.phone ?? null,
         role: normalizeUserRole(user.role) ?? "user",
+        isActive: user.isActive !== false && !user.deletedAt,
+        deletedAt: user.deletedAt
+          ? user.deletedAt instanceof Date
+            ? user.deletedAt.toISOString()
+            : String(user.deletedAt)
+          : null,
         createdAt: user.createdAt instanceof Date ? user.createdAt.toISOString() : String(user.createdAt)
       })),
       sosSignals: sosSignals.map(serializeSOSSignal)

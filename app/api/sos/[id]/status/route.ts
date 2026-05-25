@@ -53,13 +53,61 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   await connectMongo();
 
+  const current = await SOSSignal.findById(id).exec();
+
+  if (!current) {
+    return NextResponse.json({ message: "Không tìm thấy tín hiệu SOS." }, { status: 404 });
+  }
+
+  const now = new Date();
+  const previousStatus = current.status;
+  const nextStatus = parsed.data.status;
+  const timelineType =
+    nextStatus === "PENDING"
+      ? "restored_to_pending"
+      : nextStatus === "ACKNOWLEDGED"
+        ? "accepted"
+        : nextStatus === "APPROACHING"
+          ? "in_progress"
+          : nextStatus === "REACHED"
+            ? "reached"
+            : nextStatus === "RESOLVED"
+              ? "resolved"
+              : "cancelled";
+  const setPayload: Record<string, unknown> = {
+    status: nextStatus,
+    lastStatusAt: now
+  };
+  const unsetPayload: Record<string, 1> = {};
+
+  if (nextStatus === "PENDING") {
+    unsetPayload.assignedRescuer = 1;
+  } else {
+    setPayload.assignedRescuer = session.user.id;
+  }
+
+  if (nextStatus === "ACKNOWLEDGED" && !current.acceptedAt) {
+    setPayload.acceptedAt = now;
+  }
+
+  if (nextStatus === "RESOLVED" && !current.resolvedAt) {
+    setPayload.resolvedAt = now;
+  }
+
   const updated = await SOSSignal.findByIdAndUpdate(
     id,
     {
-      $set: {
-        status: parsed.data.status,
-        assignedRescuer: session.user.id,
-        lastStatusAt: new Date()
+      $set: setPayload,
+      ...(Object.keys(unsetPayload).length ? { $unset: unsetPayload } : {}),
+      $push: {
+        timeline: {
+          type: timelineType,
+          timestamp: now,
+          actorId: session.user.id,
+          actorName: session.user.name ?? session.user.email ?? null,
+          fromStatus: previousStatus,
+          toStatus: nextStatus
+        }
       }
     },
     {

@@ -1,5 +1,11 @@
 import { model, models, Schema, type Document, type Model, Types } from "mongoose";
-import { SOS_NEEDS, SOS_STATUSES, type SOSNeed, type SOSStatus } from "@/types/sos";
+import {
+  SOS_NEEDS,
+  SOS_STATUSES,
+  type SOSNeed,
+  type SOSStatus,
+  type SOSTimelineEvent
+} from "@/types/sos";
 
 export interface ISOSSignal extends Document {
   user: Types.ObjectId;
@@ -11,6 +17,13 @@ export interface ISOSSignal extends Document {
   note?: string;
   status: SOSStatus;
   assignedRescuer?: Types.ObjectId;
+  acceptedAt?: Date;
+  resolvedAt?: Date;
+  timeline?: Array<
+    Omit<SOSTimelineEvent, "timestamp"> & {
+      timestamp: Date;
+    }
+  >;
   location: {
     type: "Point";
     coordinates: [number, number];
@@ -72,6 +85,61 @@ const SOSSignalSchema = new Schema<ISOSSignal>(
       type: Schema.Types.ObjectId,
       ref: "User",
       index: true
+    },
+    acceptedAt: {
+      type: Date,
+      index: true
+    },
+    resolvedAt: {
+      type: Date,
+      index: true
+    },
+    timeline: {
+      type: [
+        {
+          type: {
+            type: String,
+            enum: [
+              "created",
+              "accepted",
+              "in_progress",
+              "reached",
+              "resolved",
+              "cancelled",
+              "restored_to_pending"
+            ],
+            required: true
+          },
+          timestamp: {
+            type: Date,
+            default: Date.now,
+            required: true
+          },
+          actorId: {
+            type: String,
+            trim: true
+          },
+          actorName: {
+            type: String,
+            trim: true,
+            maxlength: 120
+          },
+          fromStatus: {
+            type: String,
+            enum: SOS_STATUSES
+          },
+          toStatus: {
+            type: String,
+            enum: SOS_STATUSES
+          },
+          note: {
+            type: String,
+            trim: true,
+            maxlength: 300
+          }
+        }
+      ],
+      default: []
     },
     location: {
       type: {

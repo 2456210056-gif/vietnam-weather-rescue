@@ -755,31 +755,31 @@ export function VietnamRescueMap() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      <section className="rounded-[32px] border border-white/10 bg-slate-950 p-5 text-white shadow-2xl shadow-slate-950/25">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-300">
             Leaflet realtime
           </p>
-          <h2 className="mt-2 text-3xl font-black text-slate-950">
+          <h2 className="mt-2 text-3xl font-black text-white">
             Bản đồ cứu hộ & thời tiết Việt Nam
           </h2>
-          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-400">
             Leaflet + OpenStreetMap, marker SOS realtime và lớp thời tiết OpenWeather.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700 sm:flex">
-          <span className="rounded-full bg-white/85 px-3 py-2 shadow-sm backdrop-blur">
+        <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-200 sm:flex">
+          <span className="rounded-full border border-red-400/20 bg-red-500/15 px-3 py-2 text-red-100">
             SOS: {activeSignalCount}
           </span>
-          <span className="rounded-full bg-white/85 px-3 py-2 shadow-sm backdrop-blur">
+          <span className="rounded-full border border-emerald-400/20 bg-emerald-500/15 px-3 py-2 text-emerald-100">
             {realtime.isConnected ? "Realtime online" : "Polling fallback"}
           </span>
         </div>
         </div>
       </section>
 
-      <section className="relative h-[76svh] min-h-[520px] overflow-hidden rounded-[32px] border border-white/70 bg-slate-200 shadow-[0_18px_50px_rgba(15,23,42,0.12)] lg:min-h-[620px]">
+      <section className="relative h-[76svh] min-h-[520px] overflow-hidden rounded-[32px] border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-950/25 lg:min-h-[620px]">
         <div ref={mapContainerRef} className="h-full w-full" />
 
         {!isMapReady ? (
@@ -791,7 +791,7 @@ export function VietnamRescueMap() {
           </div>
         ) : null}
 
-        <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex flex-col gap-2 sm:inset-x-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="pointer-events-none absolute left-3 top-3 z-[60] sm:left-4">
           <MapLayerControl
             baseLayers={BASE_MAP_LAYERS}
             hasWeatherApiKey={hasWeatherApiKey}
@@ -804,7 +804,9 @@ export function VietnamRescueMap() {
             selectedBaseLayerId={selectedBaseLayerId}
             selectedOverlayIds={selectedWeatherOverlayIds}
           />
+        </div>
 
+        <div className="pointer-events-none absolute bottom-3 left-3 z-[60] sm:bottom-4 sm:left-4">
           <MapFreshnessBadge
             activeWeatherLayers={activeWeatherLayers}
             autoRefreshEnabled={autoRefreshWeatherLayers}
@@ -816,21 +818,36 @@ export function VietnamRescueMap() {
             onAutoRefreshChange={changeAutoRefreshWeatherLayers}
             onRefresh={() => refreshWeatherLayers()}
           />
+        </div>
 
+        <div className="pointer-events-none absolute right-4 top-4 z-[70] sm:right-5 sm:top-5">
           <button
-            className="pointer-events-auto ml-auto flex w-fit items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 text-xs font-black text-white shadow-lg shadow-blue-950/10 disabled:bg-slate-400"
+            aria-label="Vị trí của tôi"
+            className={`group pointer-events-auto relative grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-slate-950/90 text-white shadow-xl shadow-slate-950/30 backdrop-blur-xl transition-all duration-200 ease-out hover:scale-[1.05] hover:border-sky-400/40 hover:bg-slate-900 hover:brightness-110 hover:shadow-[0_16px_40px_rgba(56,189,248,0.25)] active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-80 sm:h-12 sm:w-12 ${
+              geolocation.isLoading ? "ring-4 ring-sky-400/20" : ""
+            } ${
+              geolocation.status === "error" || geolocation.status === "permission_denied"
+                ? "ring-4 ring-red-400/25"
+                : ""
+            } ${
+              geolocation.status === "success" ? "ring-4 ring-emerald-400/25" : ""
+            }`}
             disabled={geolocation.isLoading}
             onClick={() => void locateUser()}
             type="button"
           >
             {geolocation.isLoading ? (
-              <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+              <Loader2 aria-hidden className="h-5 w-5 animate-spin" />
             ) : (
-              <Crosshair aria-hidden className="h-4 w-4" />
+              <Crosshair aria-hidden className="h-[22px] w-[22px] shrink-0 stroke-[2.4]" />
             )}
-            Vị trí của tôi
+            <span className="pointer-events-none absolute right-[calc(100%+0.75rem)] top-1/2 hidden -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-xl border border-white/10 bg-slate-950/95 px-3 py-2 text-xs font-bold text-white opacity-0 shadow-xl transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 lg:block">
+              Vị trí của tôi
+            </span>
           </button>
+        </div>
 
+        <div className="hidden">
           <div className="hidden pointer-events-auto rounded-3xl bg-white/90 p-3 text-xs font-semibold text-slate-600 shadow-lg backdrop-blur-xl sm:max-w-xs">
             <p className="flex items-center gap-2 font-black text-slate-950">
               <RadioTower aria-hidden className="h-4 w-4 text-blue-600" />

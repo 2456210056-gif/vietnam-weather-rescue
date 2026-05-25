@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 import { SWRConfig } from "swr";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 type AppProvidersProps = {
   children: React.ReactNode;
@@ -43,7 +44,7 @@ export function AppProviders({ children }: AppProvidersProps) {
             shouldRetryOnError: false
           }}
         >
-          {children}
+          <ThemeProvider>{children}</ThemeProvider>
         </SWRConfig>
       </QueryClientProvider>
     </SessionProvider>
