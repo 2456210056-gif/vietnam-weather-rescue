@@ -208,7 +208,7 @@ export function ContactReportForm() {
           <button
             className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 text-sm font-black text-blue-700"
             disabled={status === "loading"}
-            onClick={requestLocation}
+            onClick={() => void requestLocation()}
             type="button"
           >
             <LocateFixed aria-hidden className="h-4 w-4" />

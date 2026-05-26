@@ -4,11 +4,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   CheckCircle2,
+  Copy,
   Loader2,
   MapPin,
+  MessageSquare,
   PhoneCall,
   RadioTower,
   ShieldAlert,
+  WifiOff,
   X
 } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
@@ -16,7 +19,11 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
 import { useGeolocation, type GeolocationSnapshot } from "@/hooks/useGeolocation";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { getLastKnownLocation, type LastKnownLocation } from "@/lib/location-storage";
 import { useSOSRealtime } from "@/hooks/useSOSRealtime";
+import { queueOfflineSOS } from "@/lib/offline-sos-queue";
+import { buildSMSHref, buildSOSMessage } from "@/lib/sos-sms";
 import { useSOSStore } from "@/stores/sosStore";
 import {
   SOS_NEED_LABELS,
@@ -67,6 +74,7 @@ export function SOSPanel() {
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
   const geolocation = useGeolocation();
+  const { isOnline } = useNetworkStatus();
   const realtime = useSOSRealtime(isAuthenticated);
   const signals = useSOSStore((state) => state.signals);
   const setSignals = useSOSStore((state) => state.setSignals);
@@ -76,10 +84,15 @@ export function SOSPanel() {
   const [note, setNote] = useState("");
   const [addressText, setAddressText] = useState("");
   const [position, setPosition] = useState<GeolocationSnapshot | null>(null);
-  const [submitState, setSubmitState] = useState<"idle" | "sending" | "success" | "error">(
-    "idle"
-  );
+  const [lastKnownLocation, setLastKnownLocation] = useState<LastKnownLocation | null>(null);
+  const [locationStatus, setLocationStatus] = useState<
+    "gps_current" | "gps_unavailable" | "last_known" | "manual_required"
+  >("manual_required");
+  const [submitState, setSubmitState] = useState<
+    "idle" | "sending" | "success" | "error" | "queued"
+  >("idle");
   const [message, setMessage] = useState("");
+  const [sosDraftCreatedAt, setSosDraftCreatedAt] = useState(() => new Date().toISOString());
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -115,9 +128,35 @@ export function SOSPanel() {
   }, [data, setSignals]);
 
   const canSubmit = useMemo(
-    () => isAuthenticated && selectedNeeds.length > 0 && submitState !== "sending",
-    [isAuthenticated, selectedNeeds.length, submitState]
+    () =>
+      selectedNeeds.length > 0 &&
+      submitState !== "sending" &&
+      (isOnline || Boolean(note.trim() || addressText.trim() || position)),
+    [addressText, isOnline, note, position, selectedNeeds.length, submitState]
   );
+
+  const sosMessage = useMemo(
+    () =>
+      buildSOSMessage({
+        addressText,
+        createdAt: sosDraftCreatedAt,
+        latitude: position?.latitude,
+        locationStatus,
+        longitude: position?.longitude,
+        needs: selectedNeeds,
+        note
+      }),
+    [
+      addressText,
+      locationStatus,
+      note,
+      position?.latitude,
+      position?.longitude,
+      selectedNeeds,
+      sosDraftCreatedAt
+    ]
+  );
+  const smsHref = useMemo(() => buildSMSHref(sosMessage), [sosMessage]);
 
   function toggleNeed(need: SOSNeed) {
     setSelectedNeeds((current) => {
@@ -131,16 +170,81 @@ export function SOSPanel() {
   }
 
   async function getPosition() {
-    const nextPosition = await geolocation.requestLocation();
+    const nextPosition = await geolocation.requestLocation({ isOnline });
 
     if (nextPosition) {
       setPosition(nextPosition);
+      setLocationStatus("gps_current");
+      setLastKnownLocation(getLastKnownLocation());
+      return nextPosition;
     }
 
-    return nextPosition;
+    const savedLocation = getLastKnownLocation();
+    setLastKnownLocation(savedLocation);
+    setLocationStatus(savedLocation ? "gps_unavailable" : "manual_required");
+
+    return null;
+  }
+
+  function useLastKnownLocation() {
+    if (!lastKnownLocation) {
+      return;
+    }
+
+    setPosition({
+      latitude: lastKnownLocation.lat,
+      longitude: lastKnownLocation.lng,
+      accuracy: lastKnownLocation.accuracy ?? 0
+    });
+    setLocationStatus("last_known");
+    setMessage("Đang dùng vị trí gần nhất đã lưu. Hãy kiểm tra lại mô tả vị trí trước khi lưu SOS.");
+  }
+
+  function saveOfflineSOS(currentPosition: GeolocationSnapshot | null) {
+    const queued = queueOfflineSOS({
+      accuracy: currentPosition?.accuracy,
+      addressText,
+      latitude: currentPosition?.latitude,
+      lastKnownSavedAt: locationStatus === "last_known" ? lastKnownLocation?.savedAt : undefined,
+      locationStatus: currentPosition ? locationStatus : "manual_required",
+      longitude: currentPosition?.longitude,
+      name: session?.user?.name,
+      needs: selectedNeeds,
+      note,
+      userId: session?.user?.id
+    });
+
+    setSubmitState("queued");
+    setMessage(
+      currentPosition
+        ? "SOS đã được lưu tạm trên thiết bị. Hệ thống sẽ tự gửi khi có mạng trở lại."
+        : "SOS đã được lưu tạm nhưng chưa có tọa độ GPS. Hãy nhập mô tả vị trí, gọi số khẩn cấp hoặc sao chép nội dung SOS."
+    );
+
+    return queued;
+  }
+
+  async function copyText(text: string, successMessage: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage(successMessage);
+      if (submitState !== "queued") {
+        setSubmitState("idle");
+      }
+    } catch {
+      setSubmitState("error");
+      setMessage("Không thể sao chép tự động. Hãy chọn và sao chép nội dung thủ công.");
+    }
   }
 
   async function submitSOS() {
+    if (!isOnline) {
+      setSubmitState("sending");
+      setMessage("");
+      saveOfflineSOS(position);
+      return;
+    }
+
     if (!isAuthenticated) {
       await signIn(undefined, { callbackUrl: "/sos" });
       return;
@@ -157,20 +261,27 @@ export function SOSPanel() {
       return;
     }
 
-    const response = await fetch("/api/sos", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        latitude: currentPosition.latitude,
-        longitude: currentPosition.longitude,
-        accuracy: currentPosition.accuracy,
-        needs: selectedNeeds,
-        note,
-        addressText
-      })
-    });
+    let response: Response;
+
+    try {
+      response = await fetch("/api/sos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          latitude: currentPosition.latitude,
+          longitude: currentPosition.longitude,
+          accuracy: currentPosition.accuracy,
+          needs: selectedNeeds,
+          note,
+          addressText
+        })
+      });
+    } catch {
+      saveOfflineSOS(currentPosition);
+      return;
+    }
 
     const payload = (await response.json().catch(() => ({}))) as {
       signal?: SOSSignalDTO;
@@ -192,11 +303,19 @@ export function SOSPanel() {
   function openModal() {
     setSubmitState("idle");
     setMessage("");
+    setSosDraftCreatedAt(new Date().toISOString());
     setIsModalOpen(true);
   }
 
   return (
     <div className="space-y-5 pb-28 md:pb-10">
+      {!isOnline ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900 shadow-sm">
+          Bạn đang offline. SOS sẽ được lưu chờ gửi khi có mạng. Nếu nguy hiểm thật, hãy gọi
+          trực tiếp 112 / 113 / 114 / 115.
+        </div>
+      ) : null}
+
       <section className="overflow-hidden rounded-[32px] border border-red-200 bg-white shadow-2xl shadow-red-950/10">
         <div className="bg-gradient-to-r from-red-600 to-red-500 p-6 text-white">
           <div className="flex items-center justify-between gap-4">
@@ -372,6 +491,21 @@ export function SOSPanel() {
               </div>
 
               <div className="flex-1 overflow-y-auto px-4 py-4 overscroll-contain sm:px-5">
+              {!isOnline ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">
+                  <div className="flex items-start gap-2">
+                    <WifiOff aria-hidden className="mt-0.5 h-5 w-5 shrink-0" />
+                    <div>
+                      <p className="font-black">Không có Internet</p>
+                      <p className="mt-1">
+                        SOS sẽ được lưu tạm trên thiết bị và tự gửi khi có mạng trở lại. Nếu
+                        nguy hiểm thật, hãy gọi trực tiếp số khẩn cấp hoặc gửi SMS nếu còn sóng.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {QUICK_NEEDS.map((need) => {
                   const active = selectedNeeds.includes(need);
@@ -421,9 +555,15 @@ export function SOSPanel() {
                     <p className="text-sm font-black text-slate-950">Vị trí GPS</p>
                     <p className="mt-1 text-sm leading-6 text-slate-600">
                       {position
-                        ? `${position.latitude.toFixed(5)}, ${position.longitude.toFixed(5)} - sai số ${Math.round(position.accuracy)}m`
+                        ? `${locationStatus === "last_known" ? "Vị trí gần nhất: " : ""}${position.latitude.toFixed(5)}, ${position.longitude.toFixed(5)} - sai số ${Math.round(position.accuracy)}m`
                         : geolocation.message}
                     </p>
+                    {!isOnline ? (
+                      <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                        GPS có thể vẫn hoạt động khi mất Internet, nhưng trên laptop hoặc khu vực
+                        tín hiệu yếu có thể không xác định được vị trí. Hãy nhập mô tả vị trí nếu cần.
+                      </p>
+                    ) : null}
                   </div>
                   <button
                     className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:bg-slate-100 disabled:text-slate-400"
@@ -436,16 +576,115 @@ export function SOSPanel() {
                     ) : (
                       <MapPin aria-hidden className="h-4 w-4" />
                     )}
-                    Lấy vị trí
+                    {position ? "Lấy lại" : "Lấy vị trí"}
                   </button>
                 </div>
+                {!position && lastKnownLocation ? (
+                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                    <p className="text-sm font-black text-amber-950">Có vị trí gần nhất đã lưu</p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-amber-900">
+                      {lastKnownLocation.lat.toFixed(5)}, {lastKnownLocation.lng.toFixed(5)}
+                      {lastKnownLocation.accuracy
+                        ? ` - sai số ${Math.round(lastKnownLocation.accuracy)}m`
+                        : ""}{" "}
+                      · lưu lúc {formatTime(lastKnownLocation.savedAt)}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        className="rounded-xl bg-amber-500 px-3 py-2 text-xs font-black text-slate-950"
+                        onClick={useLastKnownLocation}
+                        type="button"
+                      >
+                        Dùng vị trí này
+                      </button>
+                      <button
+                        className="rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-900"
+                        onClick={() => void getPosition()}
+                        type="button"
+                      >
+                        Thử lại GPS
+                      </button>
+                      <button
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-800"
+                        onClick={() => setLocationStatus("manual_required")}
+                        type="button"
+                      >
+                        Nhập thủ công
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
+              {!isOnline ? (
+                <div className="mt-4 rounded-2xl border border-amber-200 bg-white p-4">
+                  <p className="text-sm font-black text-slate-950">Hỗ trợ khẩn cấp khi offline</p>
+                  <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+                    SOS offline chưa được gửi lên hệ thống. Hãy gọi trực tiếp nếu còn sóng điện
+                    thoại, hoặc sao chép nội dung SOS để gửi SMS cho người thân/đội cứu hộ.
+                  </p>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {EMERGENCY_NUMBERS.map((item) => (
+                      <a
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 text-sm font-black text-red-700"
+                        href={`tel:${item.number}`}
+                        key={item.number}
+                      >
+                        <PhoneCall aria-hidden className="h-4 w-4" />
+                        {item.number}
+                      </a>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    <a
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-3 text-sm font-black text-white"
+                      href={smsHref}
+                    >
+                      <MessageSquare aria-hidden className="h-4 w-4" />
+                      Gửi SMS
+                    </a>
+                    <button
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-black text-slate-800"
+                      onClick={() => void copyText(sosMessage, "Đã sao chép nội dung SOS.")}
+                      type="button"
+                    >
+                      <Copy aria-hidden className="h-4 w-4" />
+                      Copy SOS
+                    </button>
+                    {position ? (
+                      <button
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-black text-slate-800"
+                        onClick={() =>
+                          void copyText(
+                            `${position.latitude.toFixed(6)}, ${position.longitude.toFixed(6)}`,
+                            "Đã sao chép tọa độ."
+                          )
+                        }
+                        type="button"
+                      >
+                        <MapPin aria-hidden className="h-4 w-4" />
+                        Copy tọa độ
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-xs font-semibold leading-5 text-slate-600">
+                    <li>Bình tĩnh, tiết kiệm pin và giữ điện thoại gần người.</li>
+                    <li>Di chuyển đến nơi cao nếu có ngập, tránh dây điện và dòng nước mạnh.</li>
+                    <li>Dùng đèn pin, âm thanh hoặc ánh sáng để phát tín hiệu.</li>
+                    <li>Gửi tọa độ bằng SMS nếu còn sóng điện thoại.</li>
+                  </ul>
+                </div>
+              ) : null}
 
               {message ? (
                 <p
                   className={`mt-4 rounded-xl px-4 py-3 text-sm font-bold ${
                     submitState === "success"
                       ? "bg-emerald-50 text-emerald-700"
+                      : submitState === "queued"
+                        ? "bg-amber-50 text-amber-900"
                       : "bg-red-50 text-red-700"
                   }`}
                 >
@@ -455,7 +694,21 @@ export function SOSPanel() {
               </div>
 
               <div className="grid shrink-0 gap-3 border-t border-slate-200 p-4 sm:grid-cols-2 sm:p-5">
-                {!isAuthenticated && status !== "loading" ? (
+                {!isOnline ? (
+                  <button
+                    className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-slate-950 disabled:bg-slate-400 sm:col-span-2"
+                    disabled={!canSubmit}
+                    onClick={() => void submitSOS()}
+                    type="button"
+                  >
+                    {submitState === "sending" ? (
+                      <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <WifiOff aria-hidden className="h-4 w-4" />
+                    )}
+                    Lưu SOS chờ gửi
+                  </button>
+                ) : !isAuthenticated && status !== "loading" ? (
                   <button
                     className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white sm:col-span-2"
                     onClick={() => signIn(undefined, { callbackUrl: "/sos" })}

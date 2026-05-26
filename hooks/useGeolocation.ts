@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { saveLastKnownLocation } from "@/lib/location-storage";
 
 export type GeolocationSnapshot = {
+  accuracy: number;
   latitude: number;
   longitude: number;
-  accuracy: number;
 };
 
 export type GeolocationStatus =
@@ -18,20 +19,32 @@ export type GeolocationStatus =
 
 type GeolocationState =
   | {
-      status: "idle" | "loading" | "unsupported" | "error" | "permission_denied";
-      position: null;
       message: string;
+      position: null;
+      status: "idle" | "loading" | "unsupported" | "error" | "permission_denied";
     }
   | {
-      status: "success";
-      position: GeolocationSnapshot;
       message: string;
+      position: GeolocationSnapshot;
+      status: "success";
     };
 
-const GEOLOCATION_OPTIONS: PositionOptions = {
+const ONLINE_GEOLOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
-  maximumAge: 10_000,
-  timeout: 15_000
+  maximumAge: 30_000,
+  timeout: 12_000
+};
+
+const OFFLINE_GEOLOCATION_OPTIONS: PositionOptions = {
+  enableHighAccuracy: true,
+  maximumAge: 10 * 60 * 1000,
+  timeout: 20_000
+};
+
+const FALLBACK_GEOLOCATION_OPTIONS: PositionOptions = {
+  enableHighAccuracy: false,
+  maximumAge: 30 * 60 * 1000,
+  timeout: 8_000
 };
 
 function getErrorState(error: GeolocationPositionError): GeolocationState {
@@ -39,8 +52,15 @@ function getErrorState(error: GeolocationPositionError): GeolocationState {
     return {
       status: "permission_denied",
       position: null,
-      message:
-        "Bạn chưa cấp quyền vị trí. Vui lòng bật quyền vị trí hoặc chọn tỉnh/thành thủ công."
+      message: "Bạn chưa cấp quyền vị trí. Hãy bật quyền định vị hoặc nhập vị trí thủ công."
+    };
+  }
+
+  if (error.code === error.POSITION_UNAVAILABLE) {
+    return {
+      status: "error",
+      position: null,
+      message: "Thiết bị chưa xác định được vị trí. Có thể do GPS yếu hoặc không có mạng hỗ trợ."
     };
   }
 
@@ -48,15 +68,21 @@ function getErrorState(error: GeolocationPositionError): GeolocationState {
     return {
       status: "error",
       position: null,
-      message: "Không lấy được vị trí trong thời gian cho phép. Hãy thử lại."
+      message: "Không lấy được vị trí trong thời gian cho phép. Hãy thử lại hoặc dùng vị trí gần nhất."
     };
   }
 
   return {
     status: "error",
     position: null,
-    message: "Không thể xác định vị trí hiện tại."
+    message: "Không thể lấy vị trí lúc này."
   };
+}
+
+function getCurrentPosition(options: PositionOptions) {
+  return new Promise<GeolocationPosition>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
 }
 
 export function useGeolocation() {
@@ -66,7 +92,7 @@ export function useGeolocation() {
     message: "Sẵn sàng lấy vị trí GPS."
   });
 
-  const requestLocation = useCallback(async () => {
+  const requestLocation = useCallback(async (options?: { isOnline?: boolean }) => {
     if (!("geolocation" in navigator)) {
       const unsupportedState: GeolocationState = {
         status: "unsupported",
@@ -80,33 +106,67 @@ export function useGeolocation() {
     setState({
       status: "loading",
       position: null,
-      message: "Đang lấy vị trí GPS..."
+      message: "Đang xác định vị trí..."
     });
 
-    return new Promise<GeolocationSnapshot | null>((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const snapshot = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          };
-
-          setState({
-            status: "success",
-            position: snapshot,
-            message: `Đã lấy vị trí, sai số khoảng ${Math.round(snapshot.accuracy)}m.`
-          });
-          resolve(snapshot);
-        },
-        (error) => {
-          const nextState = getErrorState(error);
-          setState(nextState);
-          resolve(null);
-        },
-        GEOLOCATION_OPTIONS
+    try {
+      const position = await getCurrentPosition(
+        options?.isOnline === false ? OFFLINE_GEOLOCATION_OPTIONS : ONLINE_GEOLOCATION_OPTIONS
       );
-    });
+      const snapshot = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy
+      };
+
+      saveLastKnownLocation({
+        accuracy: snapshot.accuracy,
+        lat: snapshot.latitude,
+        lng: snapshot.longitude,
+        source: "gps"
+      });
+
+      setState({
+        status: "success",
+        position: snapshot,
+        message: `Đã lấy vị trí, sai số khoảng ${Math.round(snapshot.accuracy)}m.`
+      });
+      return snapshot;
+    } catch (firstError) {
+      try {
+        const position = await getCurrentPosition(FALLBACK_GEOLOCATION_OPTIONS);
+        const snapshot = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        };
+
+        saveLastKnownLocation({
+          accuracy: snapshot.accuracy,
+          lat: snapshot.latitude,
+          lng: snapshot.longitude,
+          source: "browser"
+        });
+
+        setState({
+          status: "success",
+          position: snapshot,
+          message: `Đã lấy vị trí gần đúng, sai số khoảng ${Math.round(snapshot.accuracy)}m.`
+        });
+        return snapshot;
+      } catch {
+        const nextState =
+          firstError && typeof firstError === "object" && "code" in firstError
+            ? getErrorState(firstError as GeolocationPositionError)
+            : {
+                status: "error" as const,
+                position: null,
+                message: "Không thể lấy vị trí lúc này."
+              };
+        setState(nextState);
+        return null;
+      }
+    }
   }, []);
 
   return {

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   Bell,
   ChevronRight,
   FileText,
@@ -12,7 +13,8 @@ import {
   Siren,
   Star,
   Trash2,
-  UserRound
+  UserRound,
+  WifiOff
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
@@ -21,6 +23,8 @@ import { CompactWeatherWidget } from "@/components/dashboard/CompactWeatherWidge
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { SOSDetailModal } from "@/components/sos/SOSDetailModal";
+import { useOfflineSOSQueue } from "@/hooks/useOfflineSOSQueue";
+import type { OfflineSOSQueueItem } from "@/lib/offline-sos-queue";
 import { DEFAULT_WEATHER_LOCATIONS } from "@/lib/weather/locations";
 import type { ProfileSummaryDTO } from "@/types/profile";
 import type { UserRole } from "@/types/roles";
@@ -84,6 +88,17 @@ const SOS_NEED_TEXT: Record<SOSNeed, string> = {
 
 async function fetcher<T>(url: string) {
   const response = await fetch(url, { cache: "no-store" });
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!contentType.includes("application/json")) {
+    const text = await response.text().catch(() => "");
+    console.warn(
+      `Dashboard expected JSON from ${url} but got ${contentType || "unknown content type"}.`,
+      text.slice(0, 120)
+    );
+    throw new Error("API không trả JSON hợp lệ.");
+  }
+
   const payload = (await response.json().catch(() => ({}))) as T & { message?: string };
 
   if (!response.ok) {
@@ -130,9 +145,21 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
     fetcher<ReportsResponse>,
     { revalidateOnFocus: true }
   );
+  const offlineSOSQueue = useOfflineSOSQueue();
 
   const profile = data?.profile;
-  const reports = useMemo(() => reportsData?.reports ?? [], [reportsData?.reports]);
+  const favorites = useMemo(
+    () => (Array.isArray(profile?.favorites) ? profile.favorites : []),
+    [profile]
+  );
+  const sosHistory = useMemo(
+    () => (Array.isArray(profile?.sosHistory) ? profile.sosHistory : []),
+    [profile]
+  );
+  const reports = useMemo(
+    () => (Array.isArray(reportsData?.reports) ? reportsData.reports : []),
+    [reportsData]
+  );
   const displayName =
     profile?.user.fullName ?? profile?.user.name ?? user.name ?? user.email ?? "Người dùng";
   const displayEmail = profile?.user.email ?? user.email ?? "";
@@ -140,19 +167,18 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
   const avatar = profile?.user.avatar ?? profile?.user.image ?? user.image ?? "";
   const activeSOS = useMemo(
     () =>
-      profile?.sosHistory.find((signal) =>
+      sosHistory.find((signal) =>
         ["PENDING", "ACKNOWLEDGED", "APPROACHING", "REACHED"].includes(signal.status)
       ) ?? null,
-    [profile?.sosHistory]
+    [sosHistory]
   );
   const notificationItems = useMemo(() => {
-    const sosItems =
-      profile?.sosHistory.slice(0, 3).map((signal) => ({
-        id: `sos-${signal.id}`,
-        title: SOS_STATUS_TEXT[signal.status],
-        message: formatSOSNeeds(signal),
-        time: signal.updatedAt
-      })) ?? [];
+    const sosItems = sosHistory.slice(0, 3).map((signal) => ({
+      id: `sos-${signal.id}`,
+      title: SOS_STATUS_TEXT[signal.status],
+      message: formatSOSNeeds(signal),
+      time: signal.updatedAt
+    }));
     const reportItems = reports.slice(0, 2).map((report) => ({
       id: `report-${report.id}`,
       title: reportStatusLabel(report.status),
@@ -161,7 +187,7 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
     }));
 
     return [...sosItems, ...reportItems].slice(0, 5);
-  }, [profile?.sosHistory, reports]);
+  }, [sosHistory, reports]);
 
   async function updateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -287,7 +313,7 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
           description="Tín hiệu cá nhân"
           icon={<Siren aria-hidden className="h-5 w-5" />}
           title="SOS đã gửi"
-          value={profile?.stats.sosCount ?? 0}
+          value={profile?.stats?.sosCount ?? sosHistory.length}
           variant="blue"
         />
         <KpiCard
@@ -301,14 +327,14 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
           description="Khu vực theo dõi"
           icon={<Star aria-hidden className="h-5 w-5" />}
           title="Địa điểm yêu thích"
-          value={profile?.stats.favoriteCount ?? 0}
+          value={profile?.stats?.favoriteCount ?? favorites.length}
           variant="violet"
         />
         <KpiCard
           description="Cập nhật cá nhân"
           icon={<Bell aria-hidden className="h-5 w-5" />}
           title="Thông báo mới"
-          value={notificationItems.length}
+          value={notificationItems.length + offlineSOSQueue.items.length}
           variant="amber"
         />
       </section>
@@ -321,8 +347,11 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
           </div>
 
           <DashboardCard action={<History aria-hidden className="h-5 w-5 text-sky-300" />} title="SOS gần đây">
+            {offlineSOSQueue.items.length ? (
+              <OfflineSOSQueueCard queue={offlineSOSQueue} />
+            ) : null}
             <div className="grid max-h-[420px] gap-3 overflow-y-auto pr-1">
-              {(profile?.sosHistory ?? []).slice(0, 5).map((signal) => (
+              {sosHistory.slice(0, 5).map((signal) => (
                 <button
                   className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-950/65 p-3.5 text-left transition hover:-translate-y-0.5 hover:border-blue-400/30"
                   key={signal.id}
@@ -347,7 +376,7 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
                   </div>
                 </button>
               ))}
-              {(profile?.sosHistory ?? []).length === 0 ? (
+              {sosHistory.length === 0 ? (
                 <EmptyState text="Bạn chưa phát tín hiệu SOS nào." />
               ) : null}
             </div>
@@ -404,7 +433,7 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
                 </button>
               </div>
 
-              {(profile?.favorites ?? []).slice(0, 3).map((favorite) => (
+              {favorites.slice(0, 3).map((favorite) => (
                 <article
                   className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-950/65 p-3"
                   key={favorite.id}
@@ -434,7 +463,7 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
                   </div>
                 </article>
               ))}
-              {(profile?.favorites ?? []).length === 0 ? (
+              {favorites.length === 0 ? (
                 <EmptyState text="Chưa có địa điểm yêu thích." />
               ) : null}
             </div>
@@ -452,6 +481,116 @@ export function ProfileDashboard({ user }: ProfileDashboardProps) {
         <ReportDetailModal onClose={() => setSelectedReport(null)} report={selectedReport} />
       ) : null}
     </div>
+  );
+}
+
+function OfflineSOSQueueCard({
+  queue
+}: {
+  queue: ReturnType<typeof useOfflineSOSQueue>;
+}) {
+  return (
+    <div className="mb-3 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-3">
+      <div className="flex items-start gap-3">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-500 text-slate-950">
+          <WifiOff aria-hidden className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-amber-100">SOS chờ gửi</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-amber-100/80">
+            {queue.items.length} tín hiệu đang lưu tạm trên thiết bị. Hệ thống sẽ tự gửi khi có
+            mạng và có tọa độ hợp lệ.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2">
+        {queue.items.slice(0, 3).map((item) => (
+          <OfflineSOSQueueItem
+            item={item}
+            key={item.localId}
+            onRemove={() => queue.remove(item.localId)}
+            onRetry={() => void queue.retryNow()}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OfflineSOSQueueItem({
+  item,
+  onRemove,
+  onRetry
+}: {
+  item: OfflineSOSQueueItem;
+  onRemove: () => void;
+  onRetry: () => void;
+}) {
+  const hasCoordinates =
+    typeof item.latitude === "number" && typeof item.longitude === "number";
+  const locationBadge =
+    item.locationStatus === "last_known"
+      ? "Vị trí gần nhất"
+      : hasCoordinates
+        ? "Có GPS"
+        : item.addressText
+          ? "Vị trí thủ công"
+          : "Thiếu GPS";
+
+  return (
+    <details className="rounded-2xl border border-white/10 bg-slate-950/55 p-3 text-sm text-white">
+      <summary className="cursor-pointer list-none">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate font-black">
+              {item.needs.map((need) => SOS_NEED_TEXT[need]).join(", ") || "SOS offline"}
+            </p>
+            <p className="mt-1 text-xs font-semibold text-slate-400">
+              {formatDate(item.createdAt)} · {hasCoordinates
+                ? `${item.latitude?.toFixed(5)}, ${item.longitude?.toFixed(5)}`
+                : "Chưa có tọa độ"}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full border border-amber-300/25 bg-amber-400/15 px-3 py-1 text-xs font-black text-amber-100">
+            {locationBadge}
+          </span>
+        </div>
+      </summary>
+
+      <div className="mt-3 rounded-2xl bg-slate-950/60 p-3">
+        <p className="text-xs font-semibold leading-5 text-slate-300">
+          {item.note || "Chưa có mô tả sự cố."}
+        </p>
+        <p className="mt-2 text-xs font-semibold text-slate-400">
+          Vị trí: {item.addressText || "Chưa có mô tả vị trí."}
+        </p>
+        {item.lastError ? (
+          <p className="mt-2 flex items-start gap-2 text-xs font-bold text-amber-200">
+            <AlertTriangle aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            {item.lastError}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <button
+          className="inline-flex h-10 items-center justify-center rounded-2xl bg-amber-500 px-3 text-xs font-black text-slate-950"
+          onClick={onRetry}
+          type="button"
+        >
+          Gửi lại ngay
+        </button>
+        <button
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-red-400/20 bg-red-500/15 px-3 text-xs font-black text-red-100"
+          onClick={onRemove}
+          type="button"
+        >
+          <Trash2 aria-hidden className="h-4 w-4" />
+          Xóa khỏi hàng chờ
+        </button>
+      </div>
+    </details>
   );
 }
 

@@ -9,6 +9,7 @@ import {
 } from "@/models/WeatherReport";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type ReportInput = {
   fullName?: unknown;
@@ -58,17 +59,25 @@ export async function GET() {
     return NextResponse.json({ reports: [] });
   }
 
-  await connectMongo();
+  try {
+    await connectMongo();
 
-  const reports = await WeatherReport.find({ user: session.user.id })
-    .sort({ createdAt: -1 })
-    .limit(12)
-    .lean()
-    .exec();
+    const reports = await WeatherReport.find({ user: session.user.id })
+      .sort({ createdAt: -1 })
+      .limit(12)
+      .lean()
+      .exec();
 
-  return NextResponse.json({
-    reports: reports.map(serializeReport)
-  });
+    return NextResponse.json({
+      reports: reports.map(serializeReport)
+    });
+  } catch (error) {
+    console.error("Không thể tải lịch sử báo cáo.", error);
+    return NextResponse.json(
+      { message: "Không thể tải lịch sử báo cáo.", reports: [] },
+      { status: 500 }
+    );
+  }
 }
 
 function cleanText(value: unknown, maxLength = 200) {

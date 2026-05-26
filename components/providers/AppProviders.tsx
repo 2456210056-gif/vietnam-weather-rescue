@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 import { SWRConfig } from "swr";
+import { OfflineSOSSync } from "@/components/sos/OfflineSOSSync";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 type AppProvidersProps = {
@@ -44,7 +45,10 @@ export function AppProviders({ children }: AppProvidersProps) {
             shouldRetryOnError: false
           }}
         >
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <OfflineSOSSync />
+          </ThemeProvider>
         </SWRConfig>
       </QueryClientProvider>
     </SessionProvider>
