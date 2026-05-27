@@ -310,7 +310,7 @@ export function SOSPanel() {
   return (
     <div className="space-y-5 pb-28 md:pb-10">
       {!isOnline ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900 shadow-sm">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900 shadow-sm dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
           Bạn đang offline. SOS sẽ được lưu chờ gửi khi có mạng. Nếu nguy hiểm thật, hãy gọi
           trực tiếp 112 / 113 / 114 / 115.
         </div>
@@ -334,7 +334,7 @@ export function SOSPanel() {
         </div>
 
         <div className="space-y-5 p-5 md:p-6">
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
             Đây là hệ thống hỗ trợ báo sự cố trong phạm vi ứng dụng/đồ án. Khi nguy hiểm thật,
             hãy gọi ngay số khẩn cấp phù hợp.
           </div>
@@ -463,25 +463,25 @@ export function SOSPanel() {
           >
             <motion.section
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl will-change-transform"
+              className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-950 shadow-2xl will-change-transform dark:border-white/10 dark:bg-slate-900 dark:text-slate-100"
               exit={{ opacity: 0, y: 10, scale: 0.98 }}
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               onClick={(event) => event.stopPropagation()}
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <div className="shrink-0 border-b border-slate-200 p-4 sm:p-5">
+              <div className="shrink-0 border-b border-slate-200 p-4 dark:border-white/10 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-700">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-700 dark:text-red-300">
                     Xác nhận SOS
                   </p>
-                  <h3 className="mt-1 text-2xl font-black text-slate-950">
+                  <h3 className="mt-1 text-2xl font-black text-slate-950 dark:text-white">
                     Bạn đang cần hỗ trợ gì?
                   </h3>
                 </div>
                 <button
                   aria-label="Đóng modal SOS"
-                  className="rounded-full bg-slate-100 p-2 text-slate-700"
+                  className="rounded-full bg-slate-100 p-2 text-slate-700 transition hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                   onClick={() => setIsModalOpen(false)}
                   type="button"
                 >
@@ -492,7 +492,7 @@ export function SOSPanel() {
 
               <div className="flex-1 overflow-y-auto px-4 py-4 overscroll-contain sm:px-5">
               {!isOnline ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
                   <div className="flex items-start gap-2">
                     <WifiOff aria-hidden className="mt-0.5 h-5 w-5 shrink-0" />
                     <div>
@@ -514,8 +514,8 @@ export function SOSPanel() {
                     <button
                       className={`gpu-transition rounded-xl border px-3 py-3 text-left text-sm font-bold transition active:scale-[0.98] ${
                         active
-                          ? "border-red-600 bg-red-50 text-red-700"
-                          : "border-slate-200 bg-slate-50 text-slate-700"
+                          ? "border-red-600 bg-red-50 text-red-700 dark:border-red-500 dark:bg-red-950/50 dark:text-red-200"
+                          : "border-slate-200 bg-slate-50 text-slate-800 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 dark:border-white/10 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
                       }`}
                       key={need}
                       onClick={() => toggleNeed(need)}
@@ -528,9 +528,9 @@ export function SOSPanel() {
               </div>
 
               <label className="mt-4 block">
-                <span className="text-sm font-bold text-slate-800">Mô tả thêm</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100">Mô tả thêm</span>
                 <textarea
-                  className="mt-2 min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base outline-none transition duration-200 focus:border-red-600 focus:bg-white focus:ring-4 focus:ring-red-100"
+                  className="mt-2 min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 transition duration-200 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-400/20 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:bg-slate-950 dark:focus:ring-red-400/20"
                   maxLength={500}
                   onChange={(event) => setNote(event.target.value)}
                   placeholder="Ví dụ: đang ở tầng 2, có trẻ em, nước lên nhanh..."
@@ -539,9 +539,9 @@ export function SOSPanel() {
               </label>
 
               <label className="mt-4 block">
-                <span className="text-sm font-bold text-slate-800">Địa chỉ mô tả</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100">Địa chỉ mô tả</span>
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base outline-none transition duration-200 focus:border-red-600 focus:bg-white focus:ring-4 focus:ring-red-100"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 transition duration-200 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-400/20 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:bg-slate-950 dark:focus:ring-red-400/20"
                   maxLength={300}
                   onChange={(event) => setAddressText(event.target.value)}
                   placeholder="Tên đường, thôn/xã, mốc nhận diện..."
@@ -549,24 +549,24 @@ export function SOSPanel() {
                 />
               </label>
 
-              <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+              <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950/55">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-black text-slate-950">Vị trí GPS</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                    <p className="text-sm font-black text-slate-950 dark:text-white">Vị trí GPS</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
                       {position
                         ? `${locationStatus === "last_known" ? "Vị trí gần nhất: " : ""}${position.latitude.toFixed(5)}, ${position.longitude.toFixed(5)} - sai số ${Math.round(position.accuracy)}m`
                         : geolocation.message}
                     </p>
                     {!isOnline ? (
-                      <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                      <p className="mt-2 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">
                         GPS có thể vẫn hoạt động khi mất Internet, nhưng trên laptop hoặc khu vực
                         tín hiệu yếu có thể không xác định được vị trí. Hãy nhập mô tả vị trí nếu cần.
                       </p>
                     ) : null}
                   </div>
                   <button
-                    className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 disabled:bg-slate-100 disabled:text-slate-400"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 transition hover:bg-red-100 disabled:bg-slate-100 disabled:text-slate-400 dark:border-red-400/20 dark:bg-red-950/30 dark:text-red-200 dark:hover:bg-red-950/50 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                     disabled={geolocation.isLoading}
                     onClick={() => void getPosition()}
                     type="button"
@@ -580,9 +580,9 @@ export function SOSPanel() {
                   </button>
                 </div>
                 {!position && lastKnownLocation ? (
-                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3">
-                    <p className="text-sm font-black text-amber-950">Có vị trí gần nhất đã lưu</p>
-                    <p className="mt-1 text-xs font-semibold leading-5 text-amber-900">
+                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-400/20 dark:bg-amber-500/10">
+                    <p className="text-sm font-black text-amber-950 dark:text-amber-100">Có vị trí gần nhất đã lưu</p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-amber-900 dark:text-amber-100/85">
                       {lastKnownLocation.lat.toFixed(5)}, {lastKnownLocation.lng.toFixed(5)}
                       {lastKnownLocation.accuracy
                         ? ` - sai số ${Math.round(lastKnownLocation.accuracy)}m`
@@ -598,14 +598,14 @@ export function SOSPanel() {
                         Dùng vị trí này
                       </button>
                       <button
-                        className="rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-900"
+                        className="rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-900 dark:border-amber-400/20 dark:bg-slate-950/70 dark:text-amber-100"
                         onClick={() => void getPosition()}
                         type="button"
                       >
                         Thử lại GPS
                       </button>
                       <button
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-800"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-800 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100"
                         onClick={() => setLocationStatus("manual_required")}
                         type="button"
                       >
@@ -616,9 +616,9 @@ export function SOSPanel() {
                 ) : null}
               </div>
               {!isOnline ? (
-                <div className="mt-4 rounded-2xl border border-amber-200 bg-white p-4">
-                  <p className="text-sm font-black text-slate-950">Hỗ trợ khẩn cấp khi offline</p>
-                  <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+                <div className="mt-4 rounded-2xl border border-amber-200 bg-white p-4 dark:border-amber-400/20 dark:bg-amber-500/10">
+                  <p className="text-sm font-black text-slate-950 dark:text-amber-100">Hỗ trợ khẩn cấp khi offline</p>
+                  <p className="mt-1 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">
                     SOS offline chưa được gửi lên hệ thống. Hãy gọi trực tiếp nếu còn sóng điện
                     thoại, hoặc sao chép nội dung SOS để gửi SMS cho người thân/đội cứu hộ.
                   </p>
@@ -645,7 +645,7 @@ export function SOSPanel() {
                       Gửi SMS
                     </a>
                     <button
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-black text-slate-800"
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-black text-slate-800 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100"
                       onClick={() => void copyText(sosMessage, "Đã sao chép nội dung SOS.")}
                       type="button"
                     >
@@ -654,7 +654,7 @@ export function SOSPanel() {
                     </button>
                     {position ? (
                       <button
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-black text-slate-800"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-black text-slate-800 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100"
                         onClick={() =>
                           void copyText(
                             `${position.latitude.toFixed(6)}, ${position.longitude.toFixed(6)}`,
@@ -669,7 +669,7 @@ export function SOSPanel() {
                     ) : null}
                   </div>
 
-                  <ul className="mt-3 list-disc space-y-1 pl-5 text-xs font-semibold leading-5 text-slate-600">
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">
                     <li>Bình tĩnh, tiết kiệm pin và giữ điện thoại gần người.</li>
                     <li>Di chuyển đến nơi cao nếu có ngập, tránh dây điện và dòng nước mạnh.</li>
                     <li>Dùng đèn pin, âm thanh hoặc ánh sáng để phát tín hiệu.</li>
@@ -682,10 +682,10 @@ export function SOSPanel() {
                 <p
                   className={`mt-4 rounded-xl px-4 py-3 text-sm font-bold ${
                     submitState === "success"
-                      ? "bg-emerald-50 text-emerald-700"
+                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-100"
                       : submitState === "queued"
-                        ? "bg-amber-50 text-amber-900"
-                      : "bg-red-50 text-red-700"
+                        ? "bg-amber-50 text-amber-900 dark:bg-amber-500/10 dark:text-amber-100"
+                      : "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300"
                   }`}
                 >
                   {message}
@@ -693,7 +693,7 @@ export function SOSPanel() {
               ) : null}
               </div>
 
-              <div className="grid shrink-0 gap-3 border-t border-slate-200 p-4 sm:grid-cols-2 sm:p-5">
+              <div className="grid shrink-0 gap-3 border-t border-slate-200 p-4 dark:border-white/10 sm:grid-cols-2 sm:p-5">
                 {!isOnline ? (
                   <button
                     className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-slate-950 disabled:bg-slate-400 sm:col-span-2"
@@ -753,12 +753,12 @@ function InfoBox({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-      <div className="flex items-center gap-2 text-sm font-black text-slate-900">
+    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-950/55">
+      <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
         {icon}
         {label}
       </div>
-      <p className="mt-2 text-xs font-semibold leading-5 text-slate-600">{value}</p>
+      <p className="mt-2 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">{value}</p>
     </div>
   );
 }

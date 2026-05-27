@@ -22,7 +22,7 @@ export function FloatingSearchBar({
   onRefresh
 }: FloatingSearchBarProps) {
   return (
-    <div className="relative z-40 flex flex-col gap-3 rounded-[32px] border border-white/20 bg-gradient-to-r from-slate-950/75 to-blue-950/70 p-3 text-white shadow-2xl shadow-blue-950/30 backdrop-blur-2xl md:flex-row md:items-center md:justify-between">
+    <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col gap-3 rounded-[32px] border border-white/20 bg-gradient-to-r from-slate-950/75 to-blue-950/70 p-3 text-white shadow-2xl shadow-blue-950/30 backdrop-blur-2xl md:flex-row md:items-center md:justify-between">
       <button
         className="flex min-w-0 flex-1 items-center gap-3 rounded-[28px] border border-white/15 bg-slate-950/60 px-4 py-3 text-left shadow-xl shadow-blue-950/20 backdrop-blur-xl transition-transform duration-200 hover:scale-[1.01] hover:bg-slate-900/80"
         onClick={onOpen}

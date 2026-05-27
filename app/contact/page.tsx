@@ -5,14 +5,14 @@ import { ContactReportForm } from "@/components/contact/ContactReportForm";
 export default function ContactPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
-      <section className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:p-8">
-        <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">
+      <section className="rounded-[32px] border border-white/70 bg-white/85 p-6 text-slate-950 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/85 dark:text-slate-100 dark:shadow-2xl dark:shadow-slate-950/35 lg:p-8">
+        <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700 dark:text-sky-300">
           Liên hệ & báo cáo
         </p>
-        <h2 className="mt-2 text-3xl font-black text-slate-950 lg:text-4xl">
+        <h2 className="mt-2 text-3xl font-black text-slate-950 dark:text-white lg:text-4xl">
           Gửi báo cáo thời tiết xấu
         </h2>
-        <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+        <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">
           Báo cáo được lưu vào MongoDB để đội điều phối kiểm tra.
         </p>
 
@@ -53,10 +53,10 @@ function InfoCard({
   danger?: boolean;
 }) {
   return (
-    <article className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-      <div className={danger ? "text-red-600" : "text-blue-600"}>{icon}</div>
-      <p className="mt-3 text-base font-black text-slate-950">{label}</p>
-      <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{value}</p>
+    <article className="rounded-[28px] border border-white/70 bg-white/85 p-5 text-slate-950 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-100 dark:shadow-xl dark:shadow-slate-950/30">
+      <div className={danger ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-sky-300"}>{icon}</div>
+      <p className="mt-3 text-base font-black text-slate-950 dark:text-white">{label}</p>
+      <p className="mt-2 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">{value}</p>
     </article>
   );
 }

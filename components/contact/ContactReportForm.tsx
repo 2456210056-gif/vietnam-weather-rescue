@@ -171,9 +171,9 @@ export function ContactReportForm() {
         />
 
         <label className="block">
-          <span className="text-sm font-bold text-slate-800">Loại báo cáo</span>
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Loại báo cáo</span>
           <select
-            className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
             onChange={(event) => setType(event.target.value as typeof type)}
             value={type}
           >
@@ -186,9 +186,9 @@ export function ContactReportForm() {
         </label>
 
         <label className="block">
-          <span className="text-sm font-bold text-slate-800">Nội dung</span>
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Nội dung</span>
           <textarea
-            className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-950 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            className="mt-2 min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
             minLength={10}
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Mô tả ngắn tình hình thực tế..."
@@ -197,16 +197,16 @@ export function ContactReportForm() {
           />
         </label>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950/55 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-black text-slate-900">Tọa độ GIS</p>
-            <p className="text-sm font-semibold text-slate-600">{locationLabel}</p>
+            <p className="text-sm font-black text-slate-900 dark:text-white">Tọa độ GIS</p>
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{locationLabel}</p>
             {status === "permission_denied" || status === "error" || status === "unsupported" ? (
-              <p className="mt-1 text-xs font-semibold text-red-700">{geolocationMessage}</p>
+              <p className="mt-1 text-xs font-semibold text-red-700 dark:text-red-300">{geolocationMessage}</p>
             ) : null}
           </div>
           <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 text-sm font-black text-blue-700"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 text-sm font-black text-blue-700 transition hover:bg-blue-100 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100 dark:hover:bg-slate-800"
             disabled={status === "loading"}
             onClick={() => void requestLocation()}
             type="button"
@@ -217,14 +217,14 @@ export function ContactReportForm() {
         </div>
 
         {mutation.error ? (
-          <p className="inline-flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+          <p className="inline-flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-300">
             <AlertCircle aria-hidden className="h-4 w-4" />
             {mutation.error.message}
           </p>
         ) : null}
 
         {mutation.isSuccess ? (
-          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
+          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-100">
             <div className="flex items-start gap-3">
               <CheckCircle2 aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
               <div>
@@ -245,7 +245,7 @@ export function ContactReportForm() {
                 </a>
               ) : null}
               <button
-                className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-black text-emerald-800"
+                className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-black text-emerald-800 dark:border-emerald-400/20 dark:bg-slate-950/70 dark:text-emerald-100"
                 onClick={() => mutation.reset()}
                 type="button"
               >
@@ -266,17 +266,17 @@ export function ContactReportForm() {
         </motion.button>
       </form>
 
-      <section className="rounded-[28px] border border-slate-200 bg-white/95 p-4 shadow-xl shadow-slate-950/5">
+      <section className="rounded-[28px] border border-slate-200 bg-white/95 p-4 text-slate-950 shadow-xl shadow-slate-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-100 dark:shadow-slate-950/25">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-black text-slate-950">Báo cáo đã gửi</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-600">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white">Báo cáo đã gửi</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
               Lịch sử báo cáo gần đây được lưu trong hệ thống.
             </p>
           </div>
           <button
             aria-label="Làm mới lịch sử báo cáo"
-            className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
+            className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100 dark:hover:bg-slate-800"
             onClick={() => void mutateReports()}
             type="button"
           >
@@ -285,33 +285,33 @@ export function ContactReportForm() {
         </div>
 
         <div className="mt-4 grid gap-3">
-          {isLoadingReports ? <div className="h-24 animate-pulse rounded-2xl bg-slate-100" /> : null}
+          {isLoadingReports ? <div className="h-24 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-950/70" /> : null}
 
           {(reportsData?.reports ?? []).map((report) => (
             <article
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-950/55"
               id={`report-${report.id}`}
               key={report.id}
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-black text-slate-950">
+                  <p className="flex items-center gap-2 font-black text-slate-950 dark:text-white">
                     <FileText aria-hidden className="h-4 w-4 text-blue-600" />
                     {report.type} · {report.area}
                   </p>
-                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-slate-600">
+                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">
                     {report.description}
                   </p>
-                  <p className="mt-2 text-xs font-bold text-slate-500">
+                  <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">
                     Mã: {report.id.slice(-6).toUpperCase()} · {formatReportTime(report.createdAt)}
                   </p>
                   {typeof report.latitude === "number" && typeof report.longitude === "number" ? (
-                    <p className="mt-1 text-xs font-bold text-slate-500">
+                    <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
                       GIS: {report.latitude.toFixed(5)}, {report.longitude.toFixed(5)}
                     </p>
                   ) : null}
                 </div>
-                <span className="w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                <span className="w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-100">
                   {getReportStatusLabel(report.status)}
                 </span>
               </div>
@@ -319,7 +319,7 @@ export function ContactReportForm() {
           ))}
 
           {!isLoadingReports && (reportsData?.reports ?? []).length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm font-bold text-slate-500">
+            <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm font-bold text-slate-500 dark:border-white/15 dark:text-slate-400">
               Chưa có báo cáo nào được gửi.
             </div>
           ) : null}
@@ -346,9 +346,9 @@ function TextInput({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-bold text-slate-800">{label}</span>
+      <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{label}</span>
       <input
-        className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+        className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         required={required}

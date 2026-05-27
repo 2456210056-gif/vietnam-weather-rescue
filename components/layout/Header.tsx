@@ -81,7 +81,7 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
   const meta = getPageMeta(pathname);
 
   return (
-    <header className="theme-smooth sticky top-0 z-40 border-b border-white/70 bg-white/90 shadow-sm shadow-blue-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/90 dark:shadow-slate-950/30">
+    <header className="theme-smooth sticky top-0 z-50 border-b border-white/70 bg-white/90 shadow-sm shadow-blue-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/90 dark:shadow-slate-950/30">
       <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <button

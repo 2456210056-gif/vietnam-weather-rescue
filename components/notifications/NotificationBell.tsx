@@ -147,7 +147,7 @@ export function NotificationBell() {
   }
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative z-[70]" ref={containerRef}>
       <button
         aria-label="Thông báo"
         className="theme-smooth relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white/95 text-slate-800 shadow-lg shadow-blue-950/10 backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:border-blue-200 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 active:scale-95 dark:border-white/15 dark:bg-slate-950/90 dark:text-slate-100 dark:shadow-slate-950/30 dark:hover:text-emerald-300"
@@ -166,7 +166,7 @@ export function NotificationBell() {
         {open ? (
           <motion.div
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="theme-smooth fixed inset-x-4 top-20 z-[120] max-h-[70svh] overflow-y-auto rounded-3xl border border-slate-200 bg-white/95 p-3 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop-blur-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-14 sm:w-96 dark:border-white/15 dark:bg-slate-950/95 dark:text-white"
+            className="theme-smooth absolute right-0 top-full z-[70] mt-3 max-h-[420px] w-[min(calc(100vw-32px),380px)] overflow-y-auto rounded-3xl border border-slate-200 bg-white/95 p-3 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop-blur-xl dark:border-white/15 dark:bg-slate-950/95 dark:text-white"
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}

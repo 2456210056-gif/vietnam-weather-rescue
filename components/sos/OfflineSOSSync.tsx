@@ -64,10 +64,10 @@ export function OfflineSOSSync() {
 
   return (
     <div
-      className={`fixed bottom-24 left-4 z-[120] max-w-sm rounded-2xl border px-4 py-3 text-sm font-bold shadow-2xl md:bottom-8 ${
+      className={`fixed bottom-24 left-4 z-[55] max-w-sm rounded-2xl border px-4 py-3 text-sm font-bold shadow-2xl md:bottom-8 ${
         tone === "emerald"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-          : "border-amber-200 bg-amber-50 text-amber-900"
+          ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-100"
+          : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100"
       }`}
     >
       {message}

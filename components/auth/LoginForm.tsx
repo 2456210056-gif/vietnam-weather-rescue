@@ -7,6 +7,7 @@ import { getProviders, signIn, type ClientSafeProvider } from "next-auth/react";
 import { LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 
 type LoginFormProps = {
   callbackUrl?: string;
@@ -75,31 +76,31 @@ export function LoginForm({ callbackUrl = "/dashboard", initialError = "" }: Log
 
   return (
     <AuthShell mode="login">
-      <div className="mb-5 text-center lg:text-left">
-        <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-600 lg:mx-0">
-          <ShieldCheck aria-hidden className="h-5 w-5" />
+      <div className="mb-6 text-center lg:text-left">
+        <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100 dark:bg-blue-500/15 dark:text-sky-300 dark:ring-blue-400/20 lg:mx-0">
+          <ShieldCheck aria-hidden className="h-[18px] w-[18px]" />
         </div>
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-600">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">
           Secure access
         </p>
-        <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+        <h2 className="mt-2 text-[32px] font-extrabold leading-tight tracking-tight text-slate-950 dark:text-white">
           Đăng nhập
         </h2>
-        <p className="mt-2 text-sm font-semibold leading-5 text-slate-500">
-          Truy cập dashboard, lịch sử SOS và khu vực cứu hộ.
+        <p className="mt-3 max-w-[380px] text-[15px] font-medium leading-6 text-slate-500 dark:text-slate-300">
+          Truy cập hồ sơ, lịch sử SOS và các công cụ cứu hộ của bạn.
         </p>
       </div>
 
-      <form className="space-y-3" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block">
-          <span className="text-sm font-bold text-slate-700">Email</span>
-          <div className="mt-1.5 flex h-11 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
-            <Mail aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+          <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Email</span>
+          <div className="flex h-[46px] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 transition duration-200 hover:border-slate-300 hover:bg-white focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/15 dark:border-white/10 dark:bg-slate-950/70 dark:hover:border-white/20 dark:hover:bg-slate-900 dark:focus-within:border-blue-400 dark:focus-within:bg-slate-950 dark:focus-within:ring-blue-400/20">
+            <Mail aria-hidden className="h-[18px] w-[18px] shrink-0 text-slate-400 dark:text-slate-500" />
             <input
               autoComplete="email"
-              className="min-w-0 flex-1 bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="email@example.com"
+              placeholder="Nhập email của bạn"
               required
               type="email"
               value={email}
@@ -108,15 +109,15 @@ export function LoginForm({ callbackUrl = "/dashboard", initialError = "" }: Log
         </label>
 
         <label className="block">
-          <span className="text-sm font-bold text-slate-700">Mật khẩu</span>
-          <div className="mt-1.5 flex h-11 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
-            <LockKeyhole aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+          <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Mật khẩu</span>
+          <div className="flex h-[46px] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 transition duration-200 hover:border-slate-300 hover:bg-white focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/15 dark:border-white/10 dark:bg-slate-950/70 dark:hover:border-white/20 dark:hover:bg-slate-900 dark:focus-within:border-blue-400 dark:focus-within:bg-slate-950 dark:focus-within:ring-blue-400/20">
+            <LockKeyhole aria-hidden className="h-[18px] w-[18px] shrink-0 text-slate-400 dark:text-slate-500" />
             <input
               autoComplete="current-password"
-              className="min-w-0 flex-1 bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
               minLength={6}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Tối thiểu 6 ký tự"
+              placeholder="Nhập mật khẩu"
               required
               type="password"
               value={password}
@@ -125,13 +126,13 @@ export function LoginForm({ callbackUrl = "/dashboard", initialError = "" }: Log
         </label>
 
         {error ? (
-          <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+          <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-300">
             {error}
           </p>
         ) : null}
 
         <button
-          className="gpu-transition h-11 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-base font-black text-white shadow-lg shadow-blue-950/15 transition hover:from-blue-500 hover:to-emerald-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="gpu-transition h-12 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-[15px] font-bold text-white shadow-lg shadow-blue-500/20 transition duration-200 hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={loading}
           type="submit"
         >
@@ -141,46 +142,27 @@ export function LoginForm({ callbackUrl = "/dashboard", initialError = "" }: Log
 
       {enabledOAuthProviders.google || enabledOAuthProviders.facebook ? (
         <>
-          <div className="my-4 flex items-center gap-3 text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-            <span className="h-px flex-1 bg-slate-200" />
+          <div className="my-4 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+            <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
             Hoặc
-            <span className="h-px flex-1 bg-slate-200" />
+            <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
           </div>
 
-          <div className="grid gap-3">
-            {enabledOAuthProviders.google ? (
-              <button
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-900 shadow-sm transition duration-200 hover:bg-slate-50 active:scale-[0.98]"
-                onClick={() => signIn("google", { callbackUrl })}
-                type="button"
-              >
-                Tiếp tục với Google
-              </button>
-            ) : null}
-            {enabledOAuthProviders.facebook ? (
-              <button
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-900 shadow-sm transition duration-200 hover:bg-slate-50 active:scale-[0.98]"
-                onClick={() => signIn("facebook", { callbackUrl })}
-                type="button"
-              >
-                Tiếp tục với Facebook
-              </button>
-            ) : null}
-          </div>
+          <SocialAuthButtons callbackUrl={callbackUrl} providers={enabledOAuthProviders} />
         </>
       ) : null}
 
-      <p className="mt-4 text-center text-sm font-semibold text-slate-500">
-        Chưa có tài khoản?{" "}
-        <Link className="font-black text-blue-600 transition hover:text-emerald-600" href={"/register" as Route}>
-          Đăng ký
-        </Link>
-      </p>
-      <p className="mt-2 text-center text-sm font-semibold text-slate-500">
-        <Link className="font-black text-slate-700 transition hover:text-blue-600" href={"/" as Route}>
+      <div className="mt-5 space-y-2 text-center text-sm font-medium text-slate-500 dark:text-slate-300">
+        <p>
+          Chưa có tài khoản?{" "}
+          <Link className="font-bold text-blue-600 transition hover:text-emerald-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300" href={"/register" as Route}>
+            Đăng ký
+          </Link>
+        </p>
+        <Link className="inline-flex font-medium text-slate-500 transition hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-300" href={"/" as Route}>
           Quay lại trang chủ
         </Link>
-      </p>
+      </div>
     </AuthShell>
   );
 }

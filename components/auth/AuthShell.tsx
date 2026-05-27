@@ -26,8 +26,8 @@ export function AuthShell({ children, mode }: AuthShellProps) {
   const switchLabel = isLogin ? "Tạo tài khoản" : "Đăng nhập";
   const panelTitle = isLogin ? "Chào bạn!" : "Chào mừng trở lại!";
   const panelSubtitle = isLogin
-    ? "Nhập thông tin để truy cập hệ thống cứu hộ."
-    : "Đã có tài khoản? Đăng nhập để tiếp tục.";
+    ? "Đăng nhập để theo dõi SOS, bản đồ cứu hộ và thông tin thời tiết theo vị trí."
+    : "Đã có tài khoản? Đăng nhập để tiếp tục sử dụng hệ thống.";
 
   return (
     <section className="relative flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-gradient-to-br from-slate-50 via-sky-50 to-emerald-50 px-4 py-8 text-slate-950 transition-colors duration-300 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950 dark:text-white sm:px-6">
@@ -45,11 +45,7 @@ export function AuthShell({ children, mode }: AuthShellProps) {
             key={`auth-form-${mode}`}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div
-              className={`mx-auto flex w-full flex-col justify-center ${
-                isLogin ? "max-w-[380px]" : "max-w-[420px]"
-              }`}
-            >
+            <div className="mx-auto flex w-full max-w-[420px] flex-col justify-center">
               {children}
               {pendingOfflineSOS > 0 ? (
                 <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold leading-5 text-amber-800 dark:border-amber-400/20 dark:bg-amber-500/15 dark:text-amber-100">
@@ -74,17 +70,17 @@ export function AuthShell({ children, mode }: AuthShellProps) {
 
             <div className="relative flex h-full flex-col justify-between gap-8">
               <div>
-                <div className="mb-5 grid h-12 w-12 place-items-center rounded-[22px] border border-white/25 bg-white/15 shadow-xl backdrop-blur-xl">
+                <div className="mb-5 grid h-12 w-12 place-items-center rounded-[22px] border border-white/25 bg-white/15 shadow-lg backdrop-blur-xl">
                   <ShieldCheck aria-hidden className="h-6 w-6" />
                 </div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-white/75">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/75">
                   Vietnam Rescue
                 </p>
-                <h1 className="mt-3 text-3xl font-black leading-tight">
+                <h1 className="mt-3 text-3xl font-extrabold leading-tight">
                   Weather GIS SOS
                 </h1>
-                <p className="mt-3 max-w-sm text-sm font-semibold leading-6 text-white/85">
-                  Thời tiết, cảnh báo và hỗ trợ cứu hộ trong một hệ thống thống nhất.
+                <p className="mt-3 max-w-sm text-[15px] font-medium leading-6 text-white/85">
+                  Hệ thống cảnh báo thời tiết, bản đồ GIS và hỗ trợ cứu hộ khẩn cấp.
                 </p>
               </div>
 
@@ -95,7 +91,7 @@ export function AuthShell({ children, mode }: AuthShellProps) {
 
                     return (
                       <span
-                        className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-2 text-xs font-black text-white shadow-lg backdrop-blur-xl"
+                        className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-2 text-xs font-bold text-white shadow-md backdrop-blur-xl"
                         key={badge.label}
                       >
                         <Icon aria-hidden className="h-3.5 w-3.5" />
@@ -106,12 +102,12 @@ export function AuthShell({ children, mode }: AuthShellProps) {
                 </div>
 
                 <div className="max-w-sm space-y-3">
-                  <p className="text-2xl font-black">{panelTitle}</p>
-                  <p className="text-sm font-semibold leading-6 text-white/82">
+                  <p className="text-2xl font-extrabold">{panelTitle}</p>
+                  <p className="text-sm font-medium leading-6 text-white/82">
                     {panelSubtitle}
                   </p>
                   <Link
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-white/25 bg-white px-6 text-sm font-black text-blue-700 shadow-xl transition duration-200 hover:bg-white/90 active:scale-[0.98]"
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-white/25 bg-white px-6 text-sm font-bold text-blue-700 shadow-lg shadow-blue-950/15 transition duration-200 hover:bg-white/90 active:scale-[0.98]"
                     href={switchHref}
                   >
                     {switchLabel}
@@ -124,8 +120,8 @@ export function AuthShell({ children, mode }: AuthShellProps) {
           </motion.aside>
         </div>
 
-        <div className="flex min-h-12 shrink-0 items-center justify-center border-t border-slate-100 bg-white/95 px-6 py-3 text-center text-xs font-bold leading-5 text-slate-500 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-300 lg:h-12 lg:py-0">
-          Trong tình huống nguy hiểm thật, hãy gọi{" "}
+        <div className="flex min-h-12 shrink-0 items-center justify-center border-t border-slate-100 bg-white/95 px-6 py-3 text-center text-xs font-medium leading-5 text-slate-500 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-300 lg:h-12 lg:py-0">
+          Khẩn cấp thật? Gọi{" "}
           <a className="ml-1 font-black text-red-600 dark:text-red-300" href="tel:112">
             112
           </a>
