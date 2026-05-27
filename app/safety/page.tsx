@@ -60,7 +60,7 @@ const GUIDES = [
 export default function SafetyPage() {
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl bg-slate-950 p-5 text-white shadow-soft">
+      <section className="theme-smooth rounded-3xl bg-slate-950 p-5 text-white shadow-soft dark:bg-slate-900/90">
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-red-300">
           Hướng dẫn an toàn
         </p>
@@ -76,12 +76,12 @@ export default function SafetyPage() {
           const Icon = guide.icon;
 
           return (
-            <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" key={guide.title}>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-700">
+            <article className="theme-smooth rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/80" key={guide.title}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300">
                 <Icon aria-hidden className="h-6 w-6" />
               </div>
-              <h3 className="mt-4 text-lg font-black text-slate-950">{guide.title}</h3>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+              <h3 className="mt-4 text-lg font-black text-slate-950 dark:text-white">{guide.title}</h3>
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 {guide.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}

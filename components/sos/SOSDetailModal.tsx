@@ -44,10 +44,12 @@ export function SOSDetailModal({
 }: SOSDetailModalProps) {
   const mapHref = `/map?sosId=${encodeURIComponent(signal.id)}` as Route;
   const routeHref = `/map?sosId=${encodeURIComponent(signal.id)}&route=1` as Route;
-  const coordinates = `${signal.coordinates.latitude.toFixed(6)}, ${signal.coordinates.longitude.toFixed(6)}`;
+  const coordinates = signal.coordinates
+    ? `${signal.coordinates.latitude.toFixed(6)}, ${signal.coordinates.longitude.toFixed(6)}`
+    : "Chưa có tọa độ";
 
   function copyCoordinates() {
-    if (typeof navigator === "undefined") return;
+    if (typeof navigator === "undefined" || !signal.coordinates) return;
     void navigator.clipboard?.writeText(coordinates);
   }
 
@@ -128,6 +130,7 @@ export function SOSDetailModal({
             ) : null}
             <button
               className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-800 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+              disabled={!signal.coordinates}
               onClick={copyCoordinates}
               type="button"
             >

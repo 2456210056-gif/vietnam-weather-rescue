@@ -1,10 +1,12 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { getOfflineSOSQueue, syncOfflineSOSQueue } from "@/lib/offline-sos-queue";
 
 export function OfflineSOSSync() {
+  const pathname = usePathname();
   const { isOnline } = useNetworkStatus();
   const [message, setMessage] = useState("");
   const [tone, setTone] = useState<"amber" | "emerald">("amber");
@@ -43,7 +45,7 @@ export function OfflineSOSSync() {
         setMessage(`Đã gửi ${result.synced} SOS đã lưu khi có mạng trở lại.`);
       } else if (result.failed > 0 || result.skipped > 0) {
         setTone("amber");
-        setMessage("Một số SOS offline vẫn đang chờ gửi. Hãy kiểm tra lại vị trí hoặc đăng nhập.");
+        setMessage(result.errors[0] ?? "Một số SOS offline vẫn đang chờ gửi. Hãy kiểm tra lại hoặc đăng nhập.");
       }
     }
 
@@ -56,7 +58,7 @@ export function OfflineSOSSync() {
     };
   }, [isOnline]);
 
-  if (!message) {
+  if (!message || pathname === "/login" || pathname === "/register" || pathname.startsWith("/auth/")) {
     return null;
   }
 

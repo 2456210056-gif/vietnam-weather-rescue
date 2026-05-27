@@ -10,9 +10,20 @@ export const WEATHER_REPORT_TYPES = [
 
 export type WeatherReportType = (typeof WEATHER_REPORT_TYPES)[number];
 
-export const WEATHER_REPORT_STATUSES = ["NEW", "REVIEWING", "RESOLVED"] as const;
+export const WEATHER_REPORT_STATUSES = [
+  "NEW",
+  "REVIEWING",
+  "VERIFIED",
+  "ASSIGNED",
+  "RESOLVED",
+  "REJECTED"
+] as const;
 
 export type WeatherReportStatus = (typeof WEATHER_REPORT_STATUSES)[number];
+
+export const WEATHER_REPORT_SEVERITIES = ["low", "medium", "high", "critical"] as const;
+
+export type WeatherReportSeverity = (typeof WEATHER_REPORT_SEVERITIES)[number];
 
 export interface IWeatherReport extends Document {
   user?: Types.ObjectId;
@@ -23,11 +34,15 @@ export interface IWeatherReport extends Document {
   type: WeatherReportType;
   description: string;
   contact?: string;
+  severity?: WeatherReportSeverity;
   location?: {
     type: "Point";
     coordinates: [number, number];
   };
   status: WeatherReportStatus;
+  handledBy?: Types.ObjectId;
+  handledAt?: Date;
+  note?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -80,6 +95,12 @@ const WeatherReportSchema = new Schema<IWeatherReport>(
       trim: true,
       maxlength: 160
     },
+    severity: {
+      type: String,
+      enum: WEATHER_REPORT_SEVERITIES,
+      default: "medium",
+      index: true
+    },
     location: {
       type: {
         type: String,
@@ -109,6 +130,20 @@ const WeatherReportSchema = new Schema<IWeatherReport>(
       enum: WEATHER_REPORT_STATUSES,
       default: "NEW",
       index: true
+    },
+    handledBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true
+    },
+    handledAt: {
+      type: Date,
+      index: true
+    },
+    note: {
+      type: String,
+      trim: true,
+      maxlength: 500
     }
   },
   {

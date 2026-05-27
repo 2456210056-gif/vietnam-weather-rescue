@@ -24,12 +24,13 @@ export interface ISOSSignal extends Document {
       timestamp: Date;
     }
   >;
-  location: {
+  location?: {
     type: "Point";
     coordinates: [number, number];
   };
   addressText?: string;
   accuracy?: number;
+  locationStatus?: "gps_current" | "gps_unavailable" | "last_known" | "manual_required";
   lastStatusAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -146,11 +147,11 @@ const SOSSignalSchema = new Schema<ISOSSignal>(
         type: String,
         enum: ["Point"],
         default: "Point",
-        required: true
+        required: false
       },
       coordinates: {
         type: [Number],
-        required: true,
+        required: false,
         validate: {
           validator(value: number[]) {
             return (
@@ -174,6 +175,12 @@ const SOSSignalSchema = new Schema<ISOSSignal>(
       type: Number,
       min: 0,
       max: 50000
+    },
+    locationStatus: {
+      type: String,
+      enum: ["gps_current", "gps_unavailable", "last_known", "manual_required"],
+      default: "gps_current",
+      index: true
     },
     lastStatusAt: {
       type: Date,

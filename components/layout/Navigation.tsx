@@ -71,7 +71,7 @@ export function Navigation({ mobileOpen, onMobileOpenChange }: NavigationProps) 
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-72 flex-col border-r border-white/10 bg-slate-950 p-4 text-white shadow-2xl shadow-slate-950/35 lg:flex">
+      <aside className="theme-smooth fixed inset-y-0 left-0 z-50 hidden w-72 flex-col overflow-y-auto border-r border-white/10 bg-slate-950 p-4 text-white shadow-2xl shadow-slate-950/35 lg:flex">
         <SidebarContent items={items} pathname={pathname} />
       </aside>
 
@@ -84,7 +84,7 @@ export function Navigation({ mobileOpen, onMobileOpenChange }: NavigationProps) 
       ) : null}
       <aside
         aria-modal="true"
-        className={`fixed inset-y-0 left-0 z-[120] w-[min(85vw,320px)] border-r border-white/10 bg-slate-950 p-4 text-white shadow-2xl transition-transform duration-[250ms] lg:hidden ${
+        className={`theme-smooth fixed inset-y-0 left-0 z-[120] w-[min(85vw,320px)] overflow-y-auto border-r border-white/10 bg-slate-950 p-4 text-white shadow-2xl transition-transform duration-[250ms] lg:hidden ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         role="dialog"
@@ -111,7 +111,7 @@ export function Navigation({ mobileOpen, onMobileOpenChange }: NavigationProps) 
           ))}
         </nav>
         <Link
-          className="mt-6 flex items-center justify-center gap-3 rounded-[28px] bg-red-600 px-4 py-4 text-sm font-black text-white shadow-xl shadow-red-950/30 transition hover:bg-red-500 active:scale-[0.98]"
+          className="sos-soft-pulse mt-6 flex items-center justify-center gap-3 rounded-[28px] bg-red-600 px-4 py-4 text-sm font-black text-white shadow-xl shadow-red-950/30 transition hover:bg-red-500 active:scale-[0.98]"
           href="/sos"
           onClick={() => onMobileOpenChange(false)}
         >
@@ -120,7 +120,7 @@ export function Navigation({ mobileOpen, onMobileOpenChange }: NavigationProps) 
         </Link>
       </aside>
 
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-50 border-t border-white/70 bg-white/90 px-2 pt-2 shadow-[0_-12px_30px_rgba(37,99,235,0.12)] backdrop-blur-xl lg:hidden">
+      <nav className="safe-bottom theme-smooth fixed inset-x-0 bottom-0 z-50 border-t border-white/70 bg-white/90 px-2 pt-2 shadow-[0_-12px_30px_rgba(37,99,235,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/90 lg:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
           {[
             NAV_ITEMS[0],
@@ -138,10 +138,10 @@ export function Navigation({ mobileOpen, onMobileOpenChange }: NavigationProps) 
                 aria-current={active ? "page" : undefined}
                 className={`gpu-transition flex h-14 flex-col items-center justify-center rounded-2xl text-[10px] font-black transition active:scale-[0.98] ${
                   emergency
-                    ? "bg-red-600 text-white shadow-lg shadow-red-200"
+                    ? "sos-soft-pulse bg-red-600 text-white shadow-lg shadow-red-200 dark:shadow-red-950/30"
                     : active
-                      ? "bg-gradient-to-r from-blue-600 to-emerald-500 text-white shadow-lg shadow-blue-100"
-                      : "text-slate-600 hover:bg-blue-50"
+                      ? "bg-gradient-to-r from-blue-600 to-emerald-500 text-white shadow-lg shadow-blue-100 dark:shadow-blue-950/30"
+                      : "text-slate-600 hover:bg-blue-50 dark:text-slate-300 dark:hover:bg-white/10"
                 }`}
                 href={item.href}
                 key={item.href}
@@ -172,7 +172,7 @@ function SidebarContent({ items, pathname }: { items: NavItem[]; pathname: strin
 
       <div className="mt-auto space-y-3 pb-3 pt-6">
         <Link
-          className="gpu-transition flex items-center justify-center gap-3 rounded-[28px] bg-red-600 px-4 py-4 text-sm font-black text-white shadow-xl shadow-red-950/30 transition hover:bg-red-500 active:scale-[0.98]"
+          className="sos-soft-pulse gpu-transition flex items-center justify-center gap-3 rounded-[28px] bg-red-600 px-4 py-4 text-sm font-black text-white shadow-xl shadow-red-950/30 transition hover:bg-red-500 active:scale-[0.98]"
           href="/sos"
         >
           <LifeBuoy aria-hidden className="h-5 w-5" />

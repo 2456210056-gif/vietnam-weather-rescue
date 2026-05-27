@@ -44,9 +44,9 @@ export function MapLayerControl({
     : overlayLayers.filter((layer) => PRIMARY_WEATHER_LAYER_IDS.has(layer.id));
 
   return (
-    <div className="pointer-events-auto w-full max-w-[22rem]">
+    <div className="pointer-events-auto w-full max-w-[20rem]">
       <button
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-4 text-sm font-black text-slate-950 shadow-2xl shadow-slate-950/15 backdrop-blur-md transition hover:bg-white dark:border-white/15 dark:bg-slate-950/90 dark:text-white"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-3 text-xs font-black text-slate-950 shadow-xl shadow-slate-950/15 backdrop-blur-md transition duration-200 hover:bg-white dark:border-white/15 dark:bg-slate-950/90 dark:text-white"
         onClick={() => setOpen((value) => !value)}
         type="button"
       >
@@ -58,10 +58,10 @@ export function MapLayerControl({
         {open ? (
           <motion.section
             animate={{ opacity: 1, y: 0 }}
-            className="mt-2 max-h-[58svh] overflow-y-auto rounded-[28px] border border-slate-200 bg-white/95 p-4 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop-blur-md will-change-transform dark:border-white/15 dark:bg-slate-950/90 dark:text-white"
-            exit={{ opacity: 0, y: -8 }}
-            initial={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.16, ease: "easeOut" }}
+            className="mt-2 max-h-[52svh] overflow-y-auto rounded-[24px] border border-slate-200 bg-white/95 p-3 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop-blur-md will-change-transform dark:border-white/15 dark:bg-slate-950/90 dark:text-white"
+            exit={{ opacity: 0, y: -6 }}
+            initial={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           >
             <div>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-sky-300">
@@ -97,7 +97,7 @@ export function MapLayerControl({
               </div>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-3">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
                 Lớp thời tiết
               </p>
@@ -112,9 +112,9 @@ export function MapLayerControl({
 
                   return (
                     <button
-                      className={`flex min-h-14 items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-left text-xs font-black transition disabled:opacity-50 ${
+                      className={`flex min-h-12 items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-left text-xs font-black transition duration-200 disabled:opacity-50 ${
                         active
-                          ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-100"
+                          ? "border-transparent bg-gradient-to-r from-blue-600 to-emerald-500 text-white"
                           : "border-slate-200 bg-white text-slate-700 hover:bg-blue-50 dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
                       }`}
                       disabled={!hasWeatherApiKey}
@@ -139,9 +139,9 @@ export function MapLayerControl({
               ) : null}
             </div>
 
-            <div className="mt-4 grid gap-2">
+            <div className="mt-3 grid gap-2">
               <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 text-xs font-black text-white shadow-lg shadow-blue-950/20 transition disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-3 text-xs font-black text-white shadow-lg shadow-blue-950/20 transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700"
                 disabled={!hasWeatherApiKey || isRefreshing}
                 onClick={onRefreshWeatherLayers}
                 type="button"
@@ -150,7 +150,7 @@ export function MapLayerControl({
                 Làm mới lớp thời tiết
               </button>
               <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-800 transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-900/80 dark:text-white dark:hover:bg-slate-800"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-800 transition duration-200 hover:bg-slate-50 active:scale-[0.98] dark:border-white/10 dark:bg-slate-900/80 dark:text-white dark:hover:bg-slate-800"
                 onClick={onOpenStreetView}
                 type="button"
               >

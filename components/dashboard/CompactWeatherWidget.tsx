@@ -60,17 +60,17 @@ export function CompactWeatherWidget() {
     : null;
 
   return (
-    <section className="rounded-[24px] border border-white/10 bg-slate-900/80 p-4 text-white shadow-2xl shadow-slate-950/25">
+    <section className="rounded-[24px] border border-slate-200/80 bg-white/90 p-5 text-slate-900 shadow-xl shadow-slate-950/5 dark:border-white/10 dark:bg-slate-900/80 dark:text-white dark:shadow-slate-950/25">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-sky-300">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-blue-700 dark:text-sky-300">
             Thời tiết hiện tại
           </p>
           <h2 className="mt-2 text-lg font-black">{location?.locationName ?? "Đang cập nhật"}</h2>
         </div>
         <button
           aria-label="Làm mới thời tiết"
-          className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/10 text-white transition hover:bg-white/15"
+          className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition duration-200 hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
           onClick={() => void weatherQuery.refetch()}
           type="button"
         >
@@ -92,7 +92,7 @@ export function CompactWeatherWidget() {
               <p className="text-3xl font-black tracking-tight">
                 {Math.round(weatherQuery.data.temperature)}°C
               </p>
-              <p className="mt-1 text-sm font-bold text-slate-300">
+              <p className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
                 {weatherQuery.data.description}
               </p>
             </div>
@@ -104,8 +104,8 @@ export function CompactWeatherWidget() {
             <Metric label="Gió" value={`${weatherQuery.data.windSpeed.toFixed(1)} km/h`} />
           </div>
 
-          <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/65 p-3">
-            <p className="flex items-start gap-2 text-sm font-semibold leading-6 text-slate-200">
+          <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-slate-950/65">
+            <p className="flex items-start gap-2 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">
               <AlertTriangle
                 aria-hidden
                 className={`mt-0.5 h-4 w-4 shrink-0 ${
@@ -119,7 +119,7 @@ export function CompactWeatherWidget() {
           </div>
         </>
       ) : (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/65 p-4 text-sm font-bold text-slate-300">
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-600 dark:border-white/10 dark:bg-slate-950/65 dark:text-slate-300">
           {weatherQuery.error ? "Không thể tải thời tiết." : "Đang tải thời tiết..."}
         </div>
       )}
@@ -132,7 +132,7 @@ export function CompactWeatherWidget() {
           Xem chi tiết
         </Link>
         <Link
-          className="inline-flex h-10 items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-black text-white hover:bg-white/15"
+          className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-800 hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
           href="/#weather-location"
         >
           Đổi vị trí
@@ -144,11 +144,11 @@ export function CompactWeatherWidget() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-2.5">
-      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-2.5 dark:border-white/10 dark:bg-white/10">
+      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
         {label}
       </p>
-      <p className="mt-1 text-sm font-black text-white">{value}</p>
+      <p className="mt-1 text-sm font-black text-slate-950 dark:text-white">{value}</p>
     </div>
   );
 }

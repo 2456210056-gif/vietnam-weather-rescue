@@ -2,9 +2,12 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth/options";
 import { connectMongo } from "@/lib/db/mongoose";
+import { serializeWeatherReport } from "@/lib/reports/serialize";
 import {
   WeatherReport,
+  WEATHER_REPORT_SEVERITIES,
   WEATHER_REPORT_TYPES,
+  type WeatherReportSeverity,
   type WeatherReportType
 } from "@/models/WeatherReport";
 
@@ -19,69 +22,18 @@ type ReportInput = {
   type?: unknown;
   description?: unknown;
   contact?: unknown;
+  severity?: unknown;
   latitude?: unknown;
   longitude?: unknown;
 };
 
-function serializeReport(report: {
-  _id: { toString(): string };
-  fullName?: string;
-  email?: string;
-  area: string;
-  type: WeatherReportType;
-  description: string;
-  status: string;
-  location?: { coordinates?: number[] };
-  createdAt: Date;
-  updatedAt: Date;
-}) {
-  const coordinates = report.location?.coordinates;
-
-  return {
-    id: report._id.toString(),
-    fullName: report.fullName ?? null,
-    email: report.email ?? null,
-    area: report.area,
-    type: report.type,
-    description: report.description,
-    status: report.status,
-    latitude: Array.isArray(coordinates) ? coordinates[1] : null,
-    longitude: Array.isArray(coordinates) ? coordinates[0] : null,
-    createdAt: report.createdAt.toISOString(),
-    updatedAt: report.updatedAt.toISOString()
-  };
-}
-
-export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ reports: [] });
-  }
-
-  try {
-    await connectMongo();
-
-    const reports = await WeatherReport.find({ user: session.user.id })
-      .sort({ createdAt: -1 })
-      .limit(12)
-      .lean()
-      .exec();
-
-    return NextResponse.json({
-      reports: reports.map(serializeReport)
-    });
-  } catch (error) {
-    console.error("Không thể tải lịch sử báo cáo.", error);
-    return NextResponse.json(
-      { message: "Không thể tải lịch sử báo cáo.", reports: [] },
-      { status: 500 }
-    );
-  }
-}
-
 function cleanText(value: unknown, maxLength = 200) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+function normalizeLimit(value: string | null) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 80) : 12;
 }
 
 function parseOptionalCoordinate(value: unknown) {
@@ -91,6 +43,57 @@ function parseOptionalCoordinate(value: unknown) {
 
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ reports: [] });
+  }
+
+  try {
+    await connectMongo();
+
+    const url = new URL(request.url);
+    const mine = url.searchParams.get("mine") === "true";
+    const scope = url.searchParams.get("scope");
+    const status = url.searchParams.get("status");
+    const limit = normalizeLimit(url.searchParams.get("limit"));
+    const query: Record<string, unknown> = {};
+
+    if (session.user.role === "admin" && !mine) {
+      // Admin can see all reports.
+    } else if ((session.user.role === "rescuer" || session.user.role === "admin") && scope === "field" && !mine) {
+      query.$or = [
+        { severity: { $in: ["medium", "high", "critical"] } },
+        { type: { $in: ["FLOOD", "LANDSLIDE", "RESCUE_SHORTAGE", "STORM"] } },
+        { status: { $in: ["NEW", "REVIEWING", "VERIFIED", "ASSIGNED"] } }
+      ];
+    } else {
+      query.user = session.user.id;
+    }
+
+    if (status) {
+      query.status = status;
+    }
+
+    const reports = await WeatherReport.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return NextResponse.json({
+      reports: reports.map(serializeWeatherReport)
+    });
+  } catch (error) {
+    console.error("Không thể tải lịch sử báo cáo.", error);
+    return NextResponse.json(
+      { message: "Không thể tải lịch sử báo cáo.", reports: [] },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -110,6 +113,7 @@ export async function POST(request: Request) {
   const area = cleanText(body.area, 160);
   const description = cleanText(body.description, 1200);
   const contact = cleanText(body.contact, 160);
+  const severity = cleanText(body.severity, 20) as WeatherReportSeverity;
   const type = cleanText(body.type, 40) as WeatherReportType;
   const latitude = parseOptionalCoordinate(body.latitude);
   const longitude = parseOptionalCoordinate(body.longitude);
@@ -128,6 +132,10 @@ export async function POST(request: Request) {
 
   if (!WEATHER_REPORT_TYPES.includes(type)) {
     return NextResponse.json({ message: "Loại báo cáo không hợp lệ." }, { status: 400 });
+  }
+
+  if (severity && !WEATHER_REPORT_SEVERITIES.includes(severity)) {
+    return NextResponse.json({ message: "Mức độ báo cáo không hợp lệ." }, { status: 400 });
   }
 
   if (description.length < 10) {
@@ -161,6 +169,7 @@ export async function POST(request: Request) {
     type,
     description,
     contact: contact || phone || email || undefined,
+    severity: severity || "medium",
     location: hasLocation
       ? {
           type: "Point",
@@ -173,7 +182,7 @@ export async function POST(request: Request) {
   return NextResponse.json(
     {
       message: "Báo cáo đã được gửi cho hệ thống điều phối.",
-      report: serializeReport(report)
+      report: serializeWeatherReport(report)
     },
     { status: 201 }
   );

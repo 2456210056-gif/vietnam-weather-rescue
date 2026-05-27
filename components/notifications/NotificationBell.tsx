@@ -27,7 +27,10 @@ const STORAGE_KEY = "vietnam-rescue-notifications-seen-at";
 
 async function fetcher<T>(url: string) {
   const response = await fetch(url, { cache: "no-store" });
-  const payload = (await response.json().catch(() => ({}))) as T & { message?: string };
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload = contentType.includes("application/json")
+    ? ((await response.json().catch(() => ({}))) as T & { message?: string })
+    : ({} as T & { message?: string });
 
   if (!response.ok) {
     throw new Error(payload.message ?? "Không thể tải thông báo.");
@@ -53,7 +56,9 @@ function getSignalTitle(signal: SOSSignalDTO) {
 function toNotification(signal: SOSSignalDTO, privileged: boolean): NotificationItem {
   const location = signal.addressText
     ? signal.addressText
-    : `${signal.coordinates.latitude.toFixed(5)}, ${signal.coordinates.longitude.toFixed(5)}`;
+    : signal.coordinates
+      ? `${signal.coordinates.latitude.toFixed(5)}, ${signal.coordinates.longitude.toFixed(5)}`
+      : "Chưa có tọa độ";
   const href = `/map?sosId=${encodeURIComponent(signal.id)}` as Route;
 
   return {
@@ -145,11 +150,11 @@ export function NotificationBell() {
     <div className="relative" ref={containerRef}>
       <button
         aria-label="Thông báo"
-        className="relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white/95 text-slate-800 shadow-lg shadow-blue-950/10 backdrop-blur-xl transition hover:scale-[1.03] hover:border-blue-200 hover:text-blue-700 active:scale-95 dark:border-white/15 dark:bg-slate-950/90 dark:text-slate-100 dark:shadow-slate-950/30 dark:hover:text-emerald-300"
+        className="theme-smooth relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white/95 text-slate-800 shadow-lg shadow-blue-950/10 backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:border-blue-200 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 active:scale-95 dark:border-white/15 dark:bg-slate-950/90 dark:text-slate-100 dark:shadow-slate-950/30 dark:hover:text-emerald-300"
         onClick={toggleOpen}
         type="button"
       >
-        <Bell aria-hidden className={`h-5 w-5 ${unreadCount ? "animate-pulse" : ""}`} />
+        <Bell aria-hidden className={`h-5 w-5 ${unreadCount ? "text-red-600 dark:text-red-300" : ""}`} />
         {unreadCount ? (
           <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white shadow-lg shadow-red-600/30">
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -161,7 +166,7 @@ export function NotificationBell() {
         {open ? (
           <motion.div
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="fixed inset-x-4 top-20 z-[120] max-h-[70svh] overflow-y-auto rounded-3xl border border-slate-200 bg-white/95 p-3 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop-blur-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-14 sm:w-96 dark:border-white/15 dark:bg-slate-950/95 dark:text-white"
+            className="theme-smooth fixed inset-x-4 top-20 z-[120] max-h-[70svh] overflow-y-auto rounded-3xl border border-slate-200 bg-white/95 p-3 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop-blur-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-14 sm:w-96 dark:border-white/15 dark:bg-slate-950/95 dark:text-white"
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}

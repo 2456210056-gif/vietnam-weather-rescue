@@ -333,7 +333,7 @@ export function SOSPanel() {
           </div>
         </div>
 
-        <div className="space-y-6 p-5 md:p-6">
+        <div className="space-y-5 p-5 md:p-6">
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">
             Đây là hệ thống hỗ trợ báo sự cố trong phạm vi ứng dụng/đồ án. Khi nguy hiểm thật,
             hãy gọi ngay số khẩn cấp phù hợp.
@@ -342,10 +342,9 @@ export function SOSPanel() {
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {EMERGENCY_NUMBERS.map((item) => (
               <a
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 text-sm font-black text-red-700 transition hover:bg-red-100"
+                className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-3 text-sm font-black text-red-700 transition duration-200 hover:bg-red-100 active:scale-[0.98]"
                 href={`tel:${item.number}`}
                 key={item.number}
-                title={item.label}
               >
                 <PhoneCall aria-hidden className="h-4 w-4" />
                 {item.number}
@@ -353,20 +352,20 @@ export function SOSPanel() {
             ))}
           </div>
 
-          <div className="flex justify-center py-3 md:py-5">
+          <div className="flex justify-center py-2 md:py-4">
             <motion.button
-              animate={{ scale: [1, 1.04, 1], opacity: [1, 0.97, 1] }}
-              className="gpu-transition flex h-36 w-36 flex-col items-center justify-center rounded-full bg-red-600 text-white shadow-[0_0_60px_rgba(220,38,38,0.35)] outline-none ring-8 ring-red-100 transition active:scale-95 md:h-48 md:w-48"
+              animate={{ scale: [1, 1.018, 1] }}
+              className="gpu-transition flex h-36 w-36 flex-col items-center justify-center rounded-full bg-red-600 text-white shadow-[0_0_34px_rgba(220,38,38,0.24)] outline-none ring-4 ring-red-100 transition duration-200 active:scale-95 md:h-44 md:w-44"
               onClick={openModal}
               transition={{
-                duration: 1.25,
+                duration: 2.1,
                 ease: "easeInOut",
                 repeat: Infinity
               }}
               type="button"
             >
-              <AlertTriangle aria-hidden className="mb-2 h-9 w-9 md:h-11 md:w-11" />
-              <span className="text-4xl font-black tracking-wide md:text-5xl">SOS</span>
+              <AlertTriangle aria-hidden className="mb-2 h-9 w-9 md:h-10 md:w-10" />
+              <span className="text-4xl font-black tracking-wide md:text-[2.75rem]">SOS</span>
               <span className="mt-1 text-sm font-bold md:text-base">Cứu hộ</span>
             </motion.button>
           </div>
@@ -435,8 +434,9 @@ export function SOSPanel() {
                 <p className="mt-2 text-sm leading-6 text-slate-600">{signal.note}</p>
               ) : null}
               <p className="mt-2 text-xs font-semibold text-slate-500">
-                {signal.coordinates.latitude.toFixed(5)},{" "}
-                {signal.coordinates.longitude.toFixed(5)}
+                {signal.coordinates
+                  ? `${signal.coordinates.latitude.toFixed(5)}, ${signal.coordinates.longitude.toFixed(5)}`
+                  : "Chưa có tọa độ"}
               </p>
             </article>
           ))}
@@ -530,7 +530,7 @@ export function SOSPanel() {
               <label className="mt-4 block">
                 <span className="text-sm font-bold text-slate-800">Mô tả thêm</span>
                 <textarea
-                  className="mt-2 min-h-24 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white focus:ring-4 focus:ring-red-100"
+                  className="mt-2 min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base outline-none transition duration-200 focus:border-red-600 focus:bg-white focus:ring-4 focus:ring-red-100"
                   maxLength={500}
                   onChange={(event) => setNote(event.target.value)}
                   placeholder="Ví dụ: đang ở tầng 2, có trẻ em, nước lên nhanh..."
@@ -541,7 +541,7 @@ export function SOSPanel() {
               <label className="mt-4 block">
                 <span className="text-sm font-bold text-slate-800">Địa chỉ mô tả</span>
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white focus:ring-4 focus:ring-red-100"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base outline-none transition duration-200 focus:border-red-600 focus:bg-white focus:ring-4 focus:ring-red-100"
                   maxLength={300}
                   onChange={(event) => setAddressText(event.target.value)}
                   placeholder="Tên đường, thôn/xã, mốc nhận diện..."

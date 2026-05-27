@@ -19,18 +19,18 @@ export function DashboardSection({
 }: DashboardSectionProps) {
   return (
     <section
-      className={`rounded-[32px] border border-white/10 bg-slate-900/72 p-5 text-white shadow-2xl shadow-slate-950/30 backdrop-blur-xl lg:p-6 ${className}`}
+      className={`rounded-[28px] border border-slate-200/80 bg-white/90 p-5 text-slate-900 shadow-xl shadow-slate-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80 dark:text-white dark:shadow-slate-950/30 lg:p-6 ${className}`}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           {eyebrow ? (
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-sky-300">
               {eyebrow}
             </p>
           ) : null}
-          <h2 className="mt-1 text-xl font-black text-white lg:text-2xl">{title}</h2>
+          <h2 className="mt-1 text-xl font-black text-slate-950 dark:text-white lg:text-2xl">{title}</h2>
           {description ? (
-            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-400">
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600 dark:text-slate-400">
               {description}
             </p>
           ) : null}

@@ -41,6 +41,8 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json(
       {
+        success: false,
+        error: "Bạn cần đăng nhập để đồng bộ SOS.",
         message:
           "Bạn cần đăng nhập để gửi SOS vào hệ thống. Khi nguy hiểm thật, hãy gọi ngay 112, 113, 114 hoặc 115."
       },
@@ -53,13 +55,19 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ message: "Body JSON không hợp lệ." }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: "Body JSON không hợp lệ.", message: "Body JSON không hợp lệ." },
+      { status: 400 }
+    );
   }
 
   const parsed = parseSOSCreateInput(body);
 
   if (!parsed.ok) {
-    return NextResponse.json({ message: parsed.message }, { status: parsed.status });
+    return NextResponse.json(
+      { success: false, error: parsed.message, message: parsed.message },
+      { status: parsed.status }
+    );
   }
 
   await connectMongo();
@@ -71,6 +79,7 @@ export async function POST(request: Request) {
 
   const now = new Date();
   const fullName = user?.fullName ?? user?.name ?? session.user.name ?? session.user.email ?? "";
+  const hasCoordinates = parsed.data.latitude !== null && parsed.data.longitude !== null;
   const signal = await SOSSignal.create({
     user: session.user.id,
     fullName,
@@ -81,11 +90,14 @@ export async function POST(request: Request) {
     note: parsed.data.note,
     addressText: parsed.data.addressText,
     status: "PENDING",
-    location: {
-      type: "Point",
-      coordinates: [parsed.data.longitude, parsed.data.latitude]
-    },
+    location: hasCoordinates
+      ? {
+          type: "Point",
+          coordinates: [parsed.data.longitude, parsed.data.latitude]
+        }
+      : undefined,
     accuracy: parsed.data.accuracy,
+    locationStatus: hasCoordinates ? parsed.data.locationStatus ?? "gps_current" : "gps_unavailable",
     lastStatusAt: now,
     timeline: [
       {
@@ -94,7 +106,8 @@ export async function POST(request: Request) {
         actorId: session.user.id,
         actorName: fullName,
         fromStatus: null,
-        toStatus: "PENDING"
+        toStatus: "PENDING",
+        note: hasCoordinates ? undefined : "SOS được đồng bộ từ hàng chờ offline và chưa có tọa độ GPS."
       }
     ]
   });
@@ -109,9 +122,13 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     {
+      success: true,
+      data: serialized,
       signal: serialized,
       realtimePublished,
-      message: `Tín hiệu SOS đã được ghi nhận. Mã SOS: ${serialized.id.slice(-6).toUpperCase()}.`
+      message: hasCoordinates
+        ? `Tín hiệu SOS đã được ghi nhận. Mã SOS: ${serialized.id.slice(-6).toUpperCase()}.`
+        : `Tín hiệu SOS đã được ghi nhận nhưng chưa có tọa độ GPS. Mã SOS: ${serialized.id.slice(-6).toUpperCase()}.`
     },
     { status: 201 }
   );

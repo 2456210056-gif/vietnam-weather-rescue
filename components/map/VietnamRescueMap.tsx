@@ -204,6 +204,12 @@ export function VietnamRescueMap() {
   const searchParams = useSearchParams();
   const querySosId = searchParams.get("sosId");
   const shouldStartRouteFromQuery = searchParams.get("route") === "1";
+  const queryLatitude = Number(searchParams.get("lat"));
+  const queryLongitude = Number(searchParams.get("lng"));
+  const queryLocationKey =
+    Number.isFinite(queryLatitude) && Number.isFinite(queryLongitude)
+      ? `${queryLatitude.toFixed(6)},${queryLongitude.toFixed(6)}`
+      : null;
   const isAuthenticated = status === "authenticated";
   const canManageSOS = session?.user?.role === "rescuer" || session?.user?.role === "admin";
   const realtime = useSOSRealtime(isAuthenticated);
@@ -222,6 +228,7 @@ export function VietnamRescueMap() {
   const rescueRouteLayerRef = useRef<LayerGroup | null>(null);
   const weatherLayersRef = useRef<TileLayer[]>([]);
   const focusedQuerySignalRef = useRef<string | null>(null);
+  const focusedQueryLocationRef = useRef<string | null>(null);
   const routedQuerySignalRef = useRef<string | null>(null);
   const startRescueDirectionsRef = useRef<((signal: SOSSignalDTO) => void) | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -268,6 +275,20 @@ export function VietnamRescueMap() {
       setSignals(data.signals);
     }
   }, [data, setSignals]);
+
+  useEffect(() => {
+    if (!isMapReady || !mapRef.current || !queryLocationKey) {
+      return;
+    }
+
+    if (focusedQueryLocationRef.current === queryLocationKey) {
+      return;
+    }
+
+    mapRef.current.setView([queryLatitude, queryLongitude], 12);
+    focusedQueryLocationRef.current = queryLocationKey;
+    setStatusMessage("Đã mở địa điểm yêu thích trên bản đồ.");
+  }, [isMapReady, queryLatitude, queryLocationKey, queryLongitude]);
 
   useEffect(() => {
     let cancelled = false;
@@ -384,6 +405,10 @@ export function VietnamRescueMap() {
 
     layer.clearLayers();
     signals.forEach((signal) => {
+      if (!signal.coordinates) {
+        return;
+      }
+
       const marker = leaflet.marker(
         [signal.coordinates.latitude, signal.coordinates.longitude],
         {
@@ -584,7 +609,7 @@ export function VietnamRescueMap() {
 
   function openStreetView() {
     const center = mapRef.current?.getCenter();
-    const target = selectedSignal
+    const target = selectedSignal?.coordinates
       ? selectedSignal.coordinates
       : userPosition ?? (center ? { latitude: center.lat, longitude: center.lng } : null);
 
@@ -598,6 +623,11 @@ export function VietnamRescueMap() {
   }
 
   function openGoogleMapsDirections(signal: SOSSignalDTO) {
+    if (!signal.coordinates) {
+      setStatusMessage("Tín hiệu SOS này chưa có tọa độ để mở chỉ đường.");
+      return;
+    }
+
     const origin = rescueNavigation.position;
     const url = buildGoogleMapsDirectionsUrl({
       destinationLat: signal.coordinates.latitude,
@@ -627,7 +657,7 @@ export function VietnamRescueMap() {
     const map = mapRef.current;
     const routeLayer = rescueRouteLayerRef.current;
 
-    if (!leaflet || !map || !routeLayer) {
+    if (!leaflet || !map || !routeLayer || !signal.coordinates) {
       return;
     }
 
@@ -667,6 +697,13 @@ export function VietnamRescueMap() {
       return;
     }
 
+    const coordinates = signal.coordinates;
+
+    if (!coordinates) {
+      setRouteError("Tín hiệu SOS này chưa có tọa độ để chỉ đường.");
+      return;
+    }
+
     setRouteError("");
     setStatusMessage("");
     setIsDrawingRoute(true);
@@ -691,8 +728,8 @@ export function VietnamRescueMap() {
       const route = await fetchRescueRoute({
         origin,
         destination: {
-          lat: signal.coordinates.latitude,
-          lng: signal.coordinates.longitude
+          lat: coordinates.latitude,
+          lng: coordinates.longitude
         }
       });
 
@@ -733,7 +770,9 @@ export function VietnamRescueMap() {
 
     if (focusedQuerySignalRef.current !== signal.id) {
       setSelectedSignalId(signal.id);
-      mapRef.current?.setView([signal.coordinates.latitude, signal.coordinates.longitude], 13);
+      if (signal.coordinates) {
+        mapRef.current?.setView([signal.coordinates.latitude, signal.coordinates.longitude], 13);
+      }
       focusedQuerySignalRef.current = signal.id;
     }
 
@@ -919,8 +958,9 @@ export function VietnamRescueMap() {
               ) : null}
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600">
                 <span className="rounded-2xl bg-slate-50 p-3">
-                  {formatCoordinate(selectedSignal.coordinates.latitude)},{" "}
-                  {formatCoordinate(selectedSignal.coordinates.longitude)}
+                  {selectedSignal.coordinates
+                    ? `${formatCoordinate(selectedSignal.coordinates.latitude)}, ${formatCoordinate(selectedSignal.coordinates.longitude)}`
+                    : "Chưa có tọa độ"}
                 </span>
                 <span className="rounded-2xl bg-slate-50 p-3">
                   {SOS_STATUS_LABELS[selectedSignal.status]}
@@ -936,7 +976,7 @@ export function VietnamRescueMap() {
                   <div className="grid gap-2 sm:grid-cols-2">
                     <button
                       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-3 text-sm font-black text-white disabled:bg-slate-400"
-                      disabled={isDrawingRoute || rescueNavigation.isLocating}
+                      disabled={isDrawingRoute || rescueNavigation.isLocating || !selectedSignal.coordinates}
                       onClick={() => void startRescueDirections(selectedSignal)}
                       type="button"
                     >
@@ -951,6 +991,7 @@ export function VietnamRescueMap() {
                     </button>
                     <button
                       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
+                      disabled={!selectedSignal.coordinates}
                       onClick={() => openGoogleMapsDirections(selectedSignal)}
                       type="button"
                     >

@@ -34,7 +34,9 @@ function formatLocation(signal: SOSSignalDTO) {
     return signal.addressText;
   }
 
-  return `${signal.coordinates.latitude.toFixed(5)}, ${signal.coordinates.longitude.toFixed(5)}`;
+  return signal.coordinates
+    ? `${signal.coordinates.latitude.toFixed(5)}, ${signal.coordinates.longitude.toFixed(5)}`
+    : "Chưa có tọa độ";
 }
 
 function getPrimaryNeed(signal: SOSSignalDTO) {

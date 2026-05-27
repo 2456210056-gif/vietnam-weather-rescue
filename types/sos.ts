@@ -71,7 +71,8 @@ export type SOSSignalDTO = {
     latitude: number;
     longitude: number;
     accuracy?: number | null;
-  };
+  } | null;
+  locationStatus?: "gps_current" | "gps_unavailable" | "last_known" | "manual_required" | null;
   assignedRescuerId?: string | null;
   assignedRescuerName?: string | null;
   acceptedAt?: string | null;

@@ -6,9 +6,10 @@ import {
 } from "@/types/sos";
 
 type SOSCreateInput = {
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   accuracy?: number;
+  locationStatus?: "gps_current" | "gps_unavailable" | "last_known" | "manual_required";
   needs: SOSNeed[];
   note?: string;
   addressText?: string;
@@ -85,14 +86,26 @@ export function parseSOSCreateInput(body: unknown): ValidationResult<SOSCreateIn
     return { ok: false, message: "Body JSON không hợp lệ.", status: 400 };
   }
 
-  const latitude = Number(body.latitude);
-  const longitude = Number(body.longitude);
+  const latitudeInput = body.latitude ?? body.lat ?? (isRecord(body.coordinates) ? body.coordinates.latitude ?? body.coordinates.lat : undefined);
+  const longitudeInput = body.longitude ?? body.lng ?? (isRecord(body.coordinates) ? body.coordinates.longitude ?? body.coordinates.lng : undefined);
+  const latitude =
+    latitudeInput === undefined || latitudeInput === null || latitudeInput === ""
+      ? null
+      : Number(latitudeInput);
+  const longitude =
+    longitudeInput === undefined || longitudeInput === null || longitudeInput === ""
+      ? null
+      : Number(longitudeInput);
   const accuracy =
     body.accuracy === undefined || body.accuracy === null
       ? undefined
       : Number(body.accuracy);
 
-  if (!isValidLatitude(latitude) || !isValidLongitude(longitude)) {
+  if (
+    (latitude !== null && !isValidLatitude(latitude)) ||
+    (longitude !== null && !isValidLongitude(longitude)) ||
+    (latitude === null) !== (longitude === null)
+  ) {
     return { ok: false, message: "Tọa độ không hợp lệ.", status: 400 };
   }
 
@@ -100,7 +113,9 @@ export function parseSOSCreateInput(body: unknown): ValidationResult<SOSCreateIn
     return { ok: false, message: "Độ chính xác GPS không hợp lệ.", status: 400 };
   }
 
-  const rawNeeds = Array.isArray(body.needs) ? body.needs : [];
+  const rawNeeds = Array.isArray(body.needs)
+    ? body.needs
+    : [body.emergencyType, body.type].filter(Boolean);
   const needs = rawNeeds.filter(isSOSNeed);
 
   if (!needs.length) {
@@ -111,15 +126,28 @@ export function parseSOSCreateInput(body: unknown): ValidationResult<SOSCreateIn
     };
   }
 
+  const addressText = cleanText(body.addressText ?? body.locationText ?? body.address, 300);
+  const note = cleanText(body.note ?? body.description, 500);
+  const locationStatus = cleanText(body.locationStatus, 40) as SOSCreateInput["locationStatus"] | undefined;
+
+  if ((latitude === null || longitude === null) && !addressText && !note) {
+    return {
+      ok: false,
+      message: "SOS thiếu GPS cần có mô tả vị trí hoặc nội dung bổ sung.",
+      status: 400
+    };
+  }
+
   return {
     ok: true,
     data: {
       latitude,
       longitude,
       accuracy,
+      locationStatus,
       needs: [...new Set(needs)],
-      note: cleanText(body.note ?? body.description, 500),
-      addressText: cleanText(body.addressText, 300)
+      note,
+      addressText
     }
   };
 }

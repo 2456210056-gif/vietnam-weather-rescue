@@ -31,10 +31,11 @@ type SOSSignalLike = {
       timestamp: Date | string;
     }
   >;
-  location: {
+  location?: {
     coordinates: [number, number];
-  };
+  } | null;
   accuracy?: number | null;
+  locationStatus?: "gps_current" | "gps_unavailable" | "last_known" | "manual_required" | null;
   lastStatusAt: Date | string;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -113,7 +114,8 @@ function serializeTimeline(signal: SOSSignalLike): SOSTimelineEvent[] {
 }
 
 export function serializeSOSSignal(signal: SOSSignalLike): SOSSignalDTO {
-  const [longitude, latitude] = signal.location.coordinates;
+  const coordinates = signal.location?.coordinates;
+  const [longitude, latitude] = Array.isArray(coordinates) ? coordinates : [null, null];
 
   return {
     id: toId(signal._id),
@@ -124,11 +126,15 @@ export function serializeSOSSignal(signal: SOSSignalLike): SOSSignalDTO {
     note: signal.note ?? signal.description ?? null,
     addressText: signal.addressText ?? null,
     status: signal.status,
-    coordinates: {
-      latitude,
-      longitude,
-      accuracy: signal.accuracy ?? null
-    },
+    coordinates:
+      typeof latitude === "number" && typeof longitude === "number"
+        ? {
+            latitude,
+            longitude,
+            accuracy: signal.accuracy ?? null
+          }
+        : null,
+    locationStatus: signal.locationStatus ?? (typeof latitude === "number" && typeof longitude === "number" ? "gps_current" : "gps_unavailable"),
     assignedRescuerId: signal.assignedRescuer ? toId(signal.assignedRescuer) : null,
     assignedRescuerName: null,
     acceptedAt: signal.acceptedAt ? toISODate(signal.acceptedAt) : null,

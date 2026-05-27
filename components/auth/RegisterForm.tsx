@@ -62,9 +62,9 @@ export function RegisterForm() {
 
   return (
     <AuthShell mode="register">
-      <div className="mb-6 text-center lg:text-left">
-        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600 lg:mx-0">
-          <ShieldPlus aria-hidden className="h-6 w-6" />
+      <div className="mb-4 text-center lg:text-left">
+        <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-2xl bg-emerald-50 text-emerald-600 lg:mx-0">
+          <ShieldPlus aria-hidden className="h-5 w-5" />
         </div>
         <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">
           New rescue account
@@ -72,12 +72,12 @@ export function RegisterForm() {
         <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
           Tạo tài khoản
         </h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
+        <p className="mt-2 text-sm font-semibold leading-5 text-slate-500">
           Mã quyền chỉ dùng cho cứu hộ hoặc quản trị.
         </p>
       </div>
 
-      <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
+      <form className="grid gap-x-3 gap-y-2.5 sm:grid-cols-2" onSubmit={handleSubmit}>
         <AuthInput
           autoComplete="name"
           icon={<UserRound aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />}
@@ -146,7 +146,7 @@ export function RegisterForm() {
         ) : null}
 
         <button
-          className="gpu-transition h-12 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-base font-black text-white shadow-lg shadow-blue-950/15 transition hover:from-blue-500 hover:to-emerald-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+          className="gpu-transition h-11 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 px-4 text-base font-black text-white shadow-lg shadow-blue-950/15 transition hover:from-blue-500 hover:to-emerald-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
           disabled={loading}
           type="submit"
         >
@@ -154,10 +154,15 @@ export function RegisterForm() {
         </button>
       </form>
 
-      <p className="mt-5 text-center text-sm font-semibold text-slate-500">
+      <p className="mt-4 text-center text-sm font-semibold text-slate-500">
         Đã có tài khoản?{" "}
         <Link className="font-black text-blue-600 transition hover:text-emerald-600" href={"/login" as Route}>
           Đăng nhập
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-sm font-semibold text-slate-500">
+        <Link className="font-black text-slate-700 transition hover:text-blue-600" href={"/" as Route}>
+          Quay lại trang chủ
         </Link>
       </p>
     </AuthShell>
@@ -178,8 +183,8 @@ function AuthInput({
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
     <label className="block">
-      <span className="text-xs font-black uppercase tracking-[0.08em] text-slate-600">{label}</span>
-      <div className="mt-2 flex h-11 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
+      <span className="text-[11px] font-black uppercase tracking-[0.06em] text-slate-600">{label}</span>
+      <div className="mt-1.5 flex h-11 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
         {icon}
         <input
           className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-950 outline-none placeholder:text-slate-400"
